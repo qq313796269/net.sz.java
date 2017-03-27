@@ -38,6 +38,7 @@ import net.sz.game.engine.navmesh.PolygonBufferer;
 import java.util.*;
 import net.sz.game.engine.navmesh.KPolygon;
 import net.sz.game.engine.navmesh.Vector3;
+import net.sz.game.engine.utils.RandomUtils;
 
 /**
  *
@@ -75,20 +76,23 @@ public final class PathBlockingObstacleImpl implements PathBlockingObstacle {
      * @param collection
      * @return
      */
-    protected <T> T random(Collection<T> collection) {
+    protected Vector3 random(ArrayList<Vector3> collection) {
         if (collection == null || collection.isEmpty()) {
             return null;
         }
-        int t = (int) (collection.size() * Math.random());
-        int i = 0;
-        for (Iterator<T> item = collection.iterator(); i <= t && item.hasNext();) {
-            T next = item.next();
-            if (i == t) {
-                return next;
-            }
-            i++;
-        }
-        return null;
+        int t = RandomUtils.random(collection.size());
+
+        return collection.get(t);
+//        int t = (int) (collection.size() * Math.random());
+//        int i = 0;
+//        for (Iterator<T> item = collection.iterator(); i <= t && item.hasNext();) {
+//            T next = item.next();
+//            if (i == t) {
+//                return next;
+//            }
+//            i++;
+//        }
+//        return null;
     }
 
     /**

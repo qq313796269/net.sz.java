@@ -14,6 +14,8 @@ class TimerThread extends Thread {
 
     private static final Object SYN_OBJECT = new Object();
 
+    public static final int TIMER_WAIT = 2;
+
     public TimerThread() {
         super(ThreadPool.GlobalThreadGroup, "Global Timer Thread");
     }
@@ -23,19 +25,19 @@ class TimerThread extends Thread {
         while (true) {
             synchronized (SYN_OBJECT) {
                 try {
-                    SYN_OBJECT.wait(8);
+                    SYN_OBJECT.wait(TIMER_WAIT);
                 } catch (InterruptedException ex) {
                 }
             }
 
-            HashMap<Long, ThreadRunnable> hashMap = new HashMap<>(ThreadPool.getThreadMap());
-            for (Map.Entry<Long, ThreadRunnable> entry : hashMap.entrySet()) {
+            HashMap<Long, SzThread> hashMap = new HashMap<>(ThreadPool.getThreadMap());
+            for (Map.Entry<Long, SzThread> entry : hashMap.entrySet()) {
                 Long key = entry.getKey();
-                ThreadRunnable value = entry.getValue();
+                SzThread value = entry.getValue();
                 if (value.getThreadType() == ThreadType.Sys || ThreadPool.isStarEnd()) {
                     try {
                         value.timerRun();
-                    } catch (Exception ex) {
+                    } catch (Throwable ex) {
 
                     }
                 }

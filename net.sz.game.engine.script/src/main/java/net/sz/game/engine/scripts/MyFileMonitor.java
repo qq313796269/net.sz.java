@@ -5,7 +5,8 @@ import java.util.ArrayList;
 //import org.apache.commons.io.monitor.FileAlterationListener;
 //import org.apache.commons.io.monitor.FileAlterationMonitor;
 //import org.apache.commons.io.monitor.FileAlterationObserver;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 文件和文件夹监控器
@@ -17,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public class MyFileMonitor {
 
-    private static final Logger log = Logger.getLogger(MyFileMonitor.class);
+    private static SzLogger log = SzLogger.getLogger();
 //    static ArrayList<FileAlterationMonitor> monitors = new ArrayList<>(0);
 
     /**

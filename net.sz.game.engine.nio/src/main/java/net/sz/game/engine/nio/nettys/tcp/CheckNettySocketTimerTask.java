@@ -4,8 +4,9 @@ import io.netty.channel.ChannelHandlerContext;
 import java.util.HashMap;
 import java.util.Map;
 import net.sz.game.engine.nio.nettys.NettyPool;
-import net.sz.game.engine.thread.TimerTaskEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.thread.TimerTaskModel;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -15,9 +16,9 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public class CheckNettySocketTimerTask extends TimerTaskEvent {
+public class CheckNettySocketTimerTask extends TimerTaskModel {
 
-    private static final Logger log = Logger.getLogger(CheckNettySocketTimerTask.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public CheckNettySocketTimerTask() {
         super(10 * 1000);
@@ -26,7 +27,9 @@ public class CheckNettySocketTimerTask extends TimerTaskEvent {
     @Override
     public void run() {
         HashMap<String, ChannelHandlerContext> hashMap = new HashMap<>(NettyPool.getInstance().getSessions());
-        log.debug("tcp session size：" + hashMap.size());
+        if (log.isDebugEnabled()) {
+            log.debug("tcp session size：" + hashMap.size());
+        }
         for (Map.Entry<String, ChannelHandlerContext> entrySet : hashMap.entrySet()) {
             String sessionkey = entrySet.getKey();
             ChannelHandlerContext value = entrySet.getValue();

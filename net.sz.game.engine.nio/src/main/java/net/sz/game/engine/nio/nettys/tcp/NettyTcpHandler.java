@@ -2,8 +2,9 @@ package net.sz.game.engine.nio.nettys.tcp;
 
 import com.google.protobuf.Message;
 import io.netty.channel.ChannelHandlerContext;
-import net.sz.game.engine.thread.TaskEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.thread.TaskModel;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,9 +13,9 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public abstract class NettyTcpHandler extends TaskEvent {
+public abstract class NettyTcpHandler extends TaskModel {
 
-    private static final Logger log = Logger.getLogger(NettyTcpHandler.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = -3530603754431065676L;
 //    public static final AttributeKey<Boolean> BooleanKey = new AttributeKey<Boolean>("");
     protected ChannelHandlerContext session;

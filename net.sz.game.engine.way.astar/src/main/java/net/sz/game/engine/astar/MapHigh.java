@@ -1,7 +1,8 @@
 package net.sz.game.engine.astar;
 
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 地图阻挡，u3d的阻挡是左下角开始，右上角结束，
@@ -23,7 +24,7 @@ public class MapHigh implements Cloneable {
         System.out.println(clone.getMapBlock()[0][1]);
     }
 
-    private static final Logger log = Logger.getLogger(MapHigh.class);
+    private static SzLogger log = SzLogger.getLogger();
     //地图模版
     private int mapid;
     //宽度

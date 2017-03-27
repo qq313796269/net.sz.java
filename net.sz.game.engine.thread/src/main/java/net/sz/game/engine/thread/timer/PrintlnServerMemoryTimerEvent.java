@@ -1,8 +1,9 @@
 package net.sz.game.engine.thread.timer;
 
-import net.sz.game.engine.thread.TimerTaskEvent;
+import net.sz.game.engine.thread.TimerTaskModel;
 import net.sz.game.engine.utils.MemoryUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -11,9 +12,9 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public class PrintlnServerMemoryTimerEvent extends TimerTaskEvent {
+public class PrintlnServerMemoryTimerEvent extends TimerTaskModel {
 
-    private static final Logger log = Logger.getLogger(PrintlnServerMemoryTimerEvent.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public PrintlnServerMemoryTimerEvent() {
         super(-1, 10 * 60 * 1000);

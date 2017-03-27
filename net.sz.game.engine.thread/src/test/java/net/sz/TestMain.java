@@ -1,13 +1,8 @@
 package net.sz;
 
-import java.util.Collection;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import net.sz.game.engine.thread.ThreadModel;
-import net.sz.game.engine.utils.GlobalUtil;
-import net.sz.game.engine.utils.MailUtil;
-import net.sz.game.engine.utils.StringUtil;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -18,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 class ThreadTest implements Runnable {
 
-    private static final Logger log = Logger.getLogger(TestMain.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public ConcurrentLinkedQueue<Runnable> runs = new ConcurrentLinkedQueue<>();
 
@@ -66,7 +61,7 @@ class MyThread extends Thread {
 
 public class TestMain {
 
-    private static final Logger log = Logger.getLogger(TestMain.class);
+    private static SzLogger log = SzLogger.getLogger();
     static ThreadTest threadTest = new ThreadTest();
     static MyThread thread;
     static Thread thread1;
@@ -103,7 +98,9 @@ public class TestMain {
                 while (true) {
                     try {
                         /*相当于没 2秒 有一个任务需要处理*/
-                        Thread.sleep(2000);
+                        synchronized (this) {
+                            this.wait(2000);
+                        }
                     } catch (Exception e) {
                     }
                     /*任务队列一直不能执行*/

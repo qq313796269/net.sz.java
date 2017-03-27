@@ -3,7 +3,8 @@ package net.sz.test;
 import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.navmesh.path.NavMap;
 import net.sz.game.engine.navmesh.path.PathData;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class Test {
 
-    private static final Logger log = Logger.getLogger(Test.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) throws Exception {
         //String path = "D:\\worker\\zc\\ServerCode\\newGame\\net.sz.game.gamesr\\src\\main\\resources\\mapblock\\100.navmesh";

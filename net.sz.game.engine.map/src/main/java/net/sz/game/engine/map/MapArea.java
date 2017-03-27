@@ -1,9 +1,9 @@
 package net.sz.game.engine.map;
 
 import java.io.Serializable;
-import java.util.concurrent.ConcurrentHashMap;
-import net.sz.game.engine.util.ConcurrentArraylist;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.util.ConcurrentHashSet;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
  */
 public class MapArea implements Serializable {
 
-    private static final Logger log = Logger.getLogger(MapArea.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = 7405450854828927173L;
 
     private int Id;
@@ -28,23 +28,23 @@ public class MapArea implements Serializable {
 
     /* 因为单线程处理不考虑线程安全性 */
     //玩家列表
-    private final ConcurrentArraylist<Long> players = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> players = new ConcurrentHashSet<>();
     //npc列表
-    private final ConcurrentArraylist<Long> npcs = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> npcs = new ConcurrentHashSet<>();
     //宠物列表
-    private final ConcurrentArraylist<Long> pets = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> pets = new ConcurrentHashSet<>();
     //怪物列表
-    private final ConcurrentArraylist<Long> monsters = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> monsters = new ConcurrentHashSet<>();
     //等待复活怪物列表
-    private final ConcurrentArraylist<Long> revives = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> revives = new ConcurrentHashSet<>();
     /* 地面魔法 */
-    private final ConcurrentArraylist<Long> magics = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> magics = new ConcurrentHashSet<>();
     //链接特效列表
-    private final ConcurrentArraylist<Long> linkEffects = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> linkEffects = new ConcurrentHashSet<>();
     /* 场景掉落物 */
-    private final ConcurrentArraylist<Long> dropGoodss = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> dropGoodss = new ConcurrentHashSet<>();
     /* 场景特效 */
-    private final ConcurrentArraylist<Long> effects = new ConcurrentArraylist<>();
+    private final ConcurrentHashSet<Long> effects = new ConcurrentHashSet<>();
 
     public MapArea() {
     }
@@ -74,11 +74,6 @@ public class MapArea implements Serializable {
         return this.dropGoodss.size() + this.effects.size() + this.linkEffects.size()
                 + this.magics.size() + this.monsters.size() + this.npcs.size()
                 + this.pets.size() + this.players.size() + this.revives.size();
-    }
-
-    @Override
-    public String toString() {
-        return "MapArea{" + "Id=" + Id + ", area_W=" + area_W + ", area_H=" + area_H + ", mapThreadId=" + mapThreadId + ", players=" + players.size() + ", npcs=" + npcs.size() + ", pets=" + pets.size() + ", monsters=" + monsters.size() + ", revives=" + revives.size() + ", magics=" + magics.size() + ", linkEffects=" + linkEffects.size() + ", dropGoodss=" + dropGoodss.size() + ", effects=" + effects.size() + '}';
     }
 
     public long getMapThreadId() {
@@ -121,40 +116,44 @@ public class MapArea implements Serializable {
         this.area_H = area_H;
     }
 
-    public ConcurrentArraylist<Long> getDropGoodss() {
+    public ConcurrentHashSet<Long> getDropGoodss() {
         return dropGoodss;
     }
 
-    public ConcurrentArraylist<Long> getPlayers() {
+    public ConcurrentHashSet<Long> getPlayers() {
         return players;
     }
 
-    public ConcurrentArraylist<Long> getNpcs() {
+    public ConcurrentHashSet<Long> getNpcs() {
         return npcs;
     }
 
-    public ConcurrentArraylist<Long> getPets() {
+    public ConcurrentHashSet<Long> getPets() {
         return pets;
     }
 
-    public ConcurrentArraylist<Long> getMonsters() {
+    public ConcurrentHashSet<Long> getMonsters() {
         return monsters;
     }
 
-    public ConcurrentArraylist<Long> getRevives() {
+    public ConcurrentHashSet<Long> getRevives() {
         return revives;
     }
 
-    public ConcurrentArraylist<Long> getMagics() {
+    public ConcurrentHashSet<Long> getMagics() {
         return magics;
     }
 
-    public ConcurrentArraylist<Long> getLinkEffects() {
+    public ConcurrentHashSet<Long> getLinkEffects() {
         return linkEffects;
     }
 
-    public ConcurrentArraylist<Long> getEffects() {
+    public ConcurrentHashSet<Long> getEffects() {
         return effects;
     }
 
+    @Override
+    public String toString() {
+        return "{" + "Id=" + Id + ", area_W=" + area_W + ", area_H=" + area_H + ", mapThreadId=" + mapThreadId + ", players=" + players.size() + ", npcs=" + npcs.size() + ", pets=" + pets.size() + ", monsters=" + monsters.size() + ", revives=" + revives.size() + ", magics=" + magics.size() + ", linkEffects=" + linkEffects.size() + ", dropGoodss=" + dropGoodss.size() + ", effects=" + effects.size() + '}';
+    }
 }

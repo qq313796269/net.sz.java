@@ -61,19 +61,19 @@ public class BuffStateType implements Serializable {
         /**
          * 10.无法使用物品
          */
-        DonotUseGoods(10, "无法使用物品"),
+        CAN_NOT_USE_Goods(10, "无法使用物品"),
         /**
          * 11.无法进行传送
          */
-        DonotTransfer(11, "无法进行传送"),
+        CAN_NOT_Transfer(11, "无法进行传送"),
         /**
          * 12.无法使用技能
          */
-        DonotUseSkill(12, "无法使用技能"),
+        CAN_NOT_USE_SKILL(12, "无法使用技能"),
         /**
          * 13.无法进行乘骑
          */
-        DonotUseHose(13, "无法进行乘骑"),
+        CAN_NOT_USE_HOSE(13, "无法进行乘骑"),
         /**
          * 14, "无敌buff"
          */
@@ -81,11 +81,11 @@ public class BuffStateType implements Serializable {
         /**
          * 15, "无法移动"
          */
-        DonotMove(15, "无法移动"),
+        CAN_NOT_MOVE(15, "无法移动"),
         /**
          * 16, "恐惧状态"
          */
-        Fear(16, "恐惧状态"),
+        FEAR(16, "恐惧状态"),
         /**
          * 17, "眩晕buff"
          */

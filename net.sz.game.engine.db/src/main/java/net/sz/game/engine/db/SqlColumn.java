@@ -2,7 +2,8 @@ package net.sz.game.engine.db;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -13,7 +14,7 @@ import org.apache.log4j.Logger;
  */
 class SqlColumn {
 
-    private static final Logger log = Logger.getLogger(SqlColumn.class);
+    private static SzLogger log = SzLogger.getLogger();
     //数据库映射名字
     private String columnName;
     //字段名字

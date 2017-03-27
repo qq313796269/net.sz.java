@@ -1,7 +1,8 @@
 package net.sz.game.engine.db;
 
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,13 @@ import javax.persistence.Table;
  */
 public class TestDao {
 
-    private static final Logger log = Logger.getLogger(TestDao.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) throws Exception {
 //        System.in.read();
         Dao mysqlps;
-        mysqlps = new MysqlDaoImpl("192.168.2.220:3306", "test", "root", "1qaz2wsx", Dao.DriverName.MysqlDriver56Left, false, false);
-//        mysqlps = new SqliteDaoImpl(null, "../log/test.db3", "", "", true, false);
+//        mysqlps = new MysqlDaoImpl("192.168.2.220:3306", "test", "root", "1qaz2wsx", Dao.DriverName.MysqlDriver56Left, false, false);
+        mysqlps = new SqliteDaoImpl(null, "/home/sqlitedata/test.db3", "", "", false, false);
 
         mysqlps.createTable(Person.class);
         int forCount = 200000;
@@ -96,7 +97,7 @@ class BaseTest {
 @Table(name = "Person")
 class Person extends BaseTest {
 
-    private static final Logger log = Logger.getLogger(Person.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     @Id
     @Column(name = "_id")

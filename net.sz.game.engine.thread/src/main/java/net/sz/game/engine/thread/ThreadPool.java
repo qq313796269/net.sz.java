@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sz.game.engine.scripts.manager.ScriptManager;
-import net.sz.game.engine.utils.LongIdUtil;
-import net.sz.game.engine.thread.timer.GlobScriptTimerThread;
+import net.sz.game.engine.szlog.SzLogger;
+import net.sz.game.engine.thread.timer.GlobalScriptTimerThread;
 import net.sz.game.engine.thread.timer.PrintlnServerMemoryTimerEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.utils.LongId0Util;
 
 /**
  * 线程管理器
@@ -19,14 +19,13 @@ import org.apache.log4j.Logger;
  */
 public class ThreadPool {
 
-    static private final Logger log = Logger.getLogger(ThreadPool.class);
+    private static SzLogger log = SzLogger.getLogger();
     /**
      * 全局线程
      */
     static public final long GlobalThread;
-    static public final LongIdUtil THREAD_ID_UTIL = new LongIdUtil(1);
-    static public final ThreadGroup GlobalThreadGroup = new ThreadGroup("Global ThreadGroup");
-    static public final ThreadGroup UnknownThreadGroup = new ThreadGroup("Unknown ThreadGroup");
+    static public final ThreadGroup GlobalThreadGroup = new ThreadGroup("Global-ThreadGroup");
+    static public final ThreadGroup UnknownThreadGroup = new ThreadGroup("Unknown-ThreadGroup");
 
     /**
      * 线程模型内部错误通知
@@ -36,7 +35,7 @@ public class ThreadPool {
     /**
      * 全局脚本定时器执行线程
      */
-    static final GlobScriptTimerThread GlobalScriptTimerThread;
+    static final GlobalScriptTimerThread GlobalScriptTimerThread;
     /**
      * 检查线程卡死情况
      */
@@ -48,11 +47,11 @@ public class ThreadPool {
     /**
      * 这里的线程，内部定时器只会在 StarEnd = true 时执行
      */
-    static final ConcurrentHashMap<Long, ThreadRunnable> threadMap = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<Long, SzThread> threadMap = new ConcurrentHashMap<>();
     /**
      * 线程池，备用池
      */
-    static final ConcurrentHashMap<Long, ThreadRunnable> threadPoolMap = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<Long, SzThread> threadPoolMap = new ConcurrentHashMap<>();
 
     //表示服务器是否启动完成
     static private boolean StarEnd = false;
@@ -66,8 +65,9 @@ public class ThreadPool {
     }
 
     public static void main(String[] args) {
-
-        ThreadPool.addTimerTask(GlobalThread, new TimerTaskEvent(1000) {
+        ThreadGroup parent = GlobalThreadGroup.getParent();
+        log.error(parent);
+        ThreadPool.addTimerTask(GlobalThread, new TimerTaskModel(1000) {
 
             @Override
             public void run() {
@@ -79,7 +79,7 @@ public class ThreadPool {
 
     static {
 
-        ThreadRunnable threadModel = new ThreadRunnable(ThreadType.Sys, GlobalThreadGroup, "GloblThread", 1);
+        SzThread threadModel = new SzThread(ThreadType.Sys, GlobalThreadGroup, "Global-Thread", 1);
 
         //查询服务器消耗定时模型
         threadModel.addTimerTask(new PrintlnServerMemoryTimerEvent());
@@ -90,7 +90,7 @@ public class ThreadPool {
         threadMap.put(GlobalThread, threadModel);
 
         /*创建全局脚本执行定时器线程*/
-        GlobalScriptTimerThread = new GlobScriptTimerThread(ScriptManager.getInstance().getBaseScriptEntry());
+        GlobalScriptTimerThread = new GlobalScriptTimerThread(ScriptManager.getInstance().getBaseScriptEntry());
         GlobalScriptTimerThread.start();
 
         /* 检查线程卡死情况 */
@@ -107,7 +107,7 @@ public class ThreadPool {
      *
      * @return
      */
-    static public ConcurrentHashMap<Long, ThreadRunnable> getThreadMap() {
+    static public ConcurrentHashMap<Long, SzThread> getThreadMap() {
         return threadMap;
     }
 
@@ -118,10 +118,12 @@ public class ThreadPool {
      */
     @Deprecated
     static public void removeAll() {
-        HashMap<Long, ThreadRunnable> hashMap = new HashMap<>(threadMap);
-        for (Map.Entry<Long, ThreadRunnable> entry : hashMap.entrySet()) {
-            ThreadRunnable value = entry.getValue();
-            value.stop();
+        HashMap<Long, SzThread> hashMap = new HashMap<>(threadMap);
+        for (Map.Entry<Long, SzThread> entry : hashMap.entrySet()) {
+            SzThread value = entry.getValue();
+            if (value.threadType == ThreadType.User) {
+                value.stop();
+            }
         }
     }
 
@@ -131,11 +133,27 @@ public class ThreadPool {
      * @param tid
      * @return
      */
-    static public ThreadRunnable remove(long tid) {
-        ThreadRunnable remove = threadMap.remove(tid);
+    static public SzThread remove(long tid) {
+        SzThread remove = threadMap.remove(tid);
         if (remove != null) {
             remove.stop();
-            threadPoolMap.put(tid, remove);
+        }
+        return remove;
+    }
+
+    /**
+     * 把线程置为暂停状态，放回线程池，
+     *
+     * @param tid
+     * @return
+     */
+    static public SzThread waiting(long tid) {
+        SzThread remove = threadMap.remove(tid);
+        if (remove != null) {
+            remove.setWaiting(true);
+            synchronized (threadPoolMap) {
+                threadPoolMap.put(tid, remove);
+            }
         }
         return remove;
     }
@@ -143,28 +161,30 @@ public class ThreadPool {
     /**
      * 获取线程池的一个线程
      *
-     * @param name
-     * @param threadcount
      * @return
      */
-    static public ThreadRunnable getThread(String name, int threadcount) {
+    static public SzThread getNextThreadPool() {
         long threadId = 0;
-        if (threadPoolMap.size() > 0) {
-            if (threadPoolMap.keys().hasMoreElements()) {
-                threadId = threadPoolMap.keys().nextElement();
+        SzThread threadRunnable = null;
+        synchronized (threadPoolMap) {
+            if (threadPoolMap.size() > 0) {
+                if (threadPoolMap.keys().hasMoreElements()) {
+                    threadId = threadPoolMap.keys().nextElement();
+                    threadRunnable = threadPoolMap.remove(threadId);
+                }
             }
         }
-        return threadMap.get(threadId);
+        return threadRunnable;
     }
 
     /**
-     * 获取线程池的一个线程
+     * 获取线程
      *
      * @param threadId
      * @return
      */
-    static public ThreadRunnable getThread(long threadId) {
-        ThreadRunnable get = threadMap.get(threadId);
+    static public SzThread getThread(long threadId) {
+        SzThread get = threadMap.get(threadId);
         if (get == null) {
             log.error("无法找到线程模型：" + threadId, new Exception("无法找到线程模型：" + threadId));
         }
@@ -236,19 +256,7 @@ public class ThreadPool {
      * @return
      */
     static public long addThread(ThreadGroup group, String name) {
-        return addThread(ThreadType.User, group, name, 1);
-    }
-
-    /**
-     * 向线程池注册一个线程
-     *
-     * @param threadType
-     * @param group 线程分组信息
-     * @param name 线程名称
-     * @return
-     */
-    static public long addThread(ThreadType threadType, ThreadGroup group, String name) {
-        return addThread(threadType, group, name, 1);
+        return addThread(group, name, 1);
     }
 
     /**
@@ -270,11 +278,23 @@ public class ThreadPool {
      * @param threadType
      * @param group 线程分组信息
      * @param name 线程名称
+     * @return
+     */
+    static public long addThread(ThreadType threadType, ThreadGroup group, String name) {
+        return addThread(threadType, group, name, 1);
+    }
+
+    /**
+     * 向线程池注册一个线程
+     *
+     * @param threadType
+     * @param group 线程分组信息
+     * @param name 线程名称
      * @param threadcount 线程量
      * @return
      */
     static public long addThread(ThreadType threadType, ThreadGroup group, String name, int threadcount) {
-        ThreadRunnable threadModel = new ThreadRunnable(threadType, group, name, threadcount);
+        SzThread threadModel = new SzThread(threadType, group, name, threadcount);
         return addThread(threadModel);
     }
 
@@ -284,7 +304,7 @@ public class ThreadPool {
      * @param threadModel
      * @return
      */
-    static public long addThread(ThreadRunnable threadModel) {
+    static public long addThread(SzThread threadModel) {
         threadMap.put(threadModel.getId(), threadModel);
         return threadModel.getId();
     }
@@ -296,8 +316,8 @@ public class ThreadPool {
      * @param task
      * @return
      */
-    static public boolean addTask(long threadId, TaskEvent task) {
-        ThreadRunnable threadModel = getThread(threadId);
+    static public boolean addTask(long threadId, TaskModel task) {
+        SzThread threadModel = getThread(threadId);
         if (threadModel != null) {
             threadModel.addTask(task);
             return true;
@@ -312,8 +332,8 @@ public class ThreadPool {
      * @param task
      * @return
      */
-    static public boolean addTimerTask(long threadId, TimerTaskEvent task) {
-        ThreadRunnable threadModel = getThread(threadId);
+    static public boolean addTimerTask(long threadId, TimerTaskModel task) {
+        SzThread threadModel = getThread(threadId);
         if (threadModel != null) {
             threadModel.addTimerTask(task);
             return true;
@@ -323,9 +343,9 @@ public class ThreadPool {
 
     static public long getCurrentThreadID() {
         Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof ThreadModel) {
+        if (currentThread instanceof SzThread.ThreadModel) {
             long threadId = currentThread.getId();
-            ThreadRunnable threadModel = getThread(threadId);
+            SzThread threadModel = getThread(threadId);
             if (threadModel != null) {
                 return threadId;
             }
@@ -339,11 +359,11 @@ public class ThreadPool {
      * @param task
      * @return
      */
-    static public boolean addCurrentThreadTask(TaskEvent task) {
+    static public boolean addCurrentThreadTask(TaskModel task) {
         Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof ThreadModel) {
+        if (currentThread instanceof SzThread.ThreadModel) {
             long threadId = currentThread.getId();
-            ThreadRunnable threadModel = getThread(threadId);
+            SzThread threadModel = getThread(threadId);
             if (threadModel != null) {
                 threadModel.addTask(task);
                 return true;
@@ -354,15 +374,18 @@ public class ThreadPool {
 
     /**
      * 添加定时器任务，添加任务到当前线程
+     * <br>
+     * 需要确认不是场景地图线程
      *
      * @param task
      * @return
      */
-    static public boolean addCurrentThreadTimerTask(TimerTaskEvent task) {
+    @Deprecated
+    static public boolean addCurrentThreadTimerTask(TimerTaskModel task) {
         Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof ThreadModel) {
+        if (currentThread instanceof SzThread.ThreadModel) {
             long threadId = currentThread.getId();
-            ThreadRunnable threadModel = getThread(threadId);
+            SzThread threadModel = getThread(threadId);
             if (threadModel != null) {
                 threadModel.addTimerTask(task);
                 return true;

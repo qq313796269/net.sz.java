@@ -1,7 +1,6 @@
 package net.sz.game.engine.nio.nettys.http;
 
 import net.sz.game.engine.nio.nettys.http.handler.IHttpHandler;
-import net.sz.game.engine.thread.ThreadPool;
 
 /**
  * http监听
@@ -13,24 +12,12 @@ import net.sz.game.engine.thread.ThreadPool;
  */
 class HttpActionBean {
 
-    private String bindurl;
     private IHttpHandler httpHandler;
     private long threadId;
 
-    private static final ThreadGroup THREAD_GROUP = new ThreadGroup("Http ThreadGroup");
-
-    public HttpActionBean(String hostname, String bindurl, IHttpHandler httpHandler, int threadCount) {
-        this.bindurl = bindurl;
+    public HttpActionBean(IHttpHandler httpHandler, long threadId) {
         this.httpHandler = httpHandler;
-        this.threadId = ThreadPool.addThread(THREAD_GROUP, hostname + "/" + bindurl, threadCount);
-    }
-
-    public String getBindurl() {
-        return bindurl;
-    }
-
-    public void setBindurl(String bindurl) {
-        this.bindurl = bindurl;
+        this.threadId = threadId;
     }
 
     public IHttpHandler getHttpHandler() {

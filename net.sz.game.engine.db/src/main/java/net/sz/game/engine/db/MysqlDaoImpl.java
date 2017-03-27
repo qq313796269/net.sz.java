@@ -1,6 +1,5 @@
 package net.sz.game.engine.db;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,7 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
  */
 public class MysqlDaoImpl extends Dao {
 
-    private static final Logger log = Logger.getLogger(MysqlDaoImpl.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     /**
      * 默认不使用连接池，不开启sql语句监听显示
@@ -82,7 +82,7 @@ public class MysqlDaoImpl extends Dao {
         if (!startend) {
             try {
                 Class.forName(getConnectionDriverName());
-            } catch (ClassNotFoundException e) {
+            } catch (Throwable e) {
                 log.error(getConnectionDriverName(), e);
             }
             startend = true;
@@ -96,7 +96,7 @@ public class MysqlDaoImpl extends Dao {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (this.bds != null) {
             this.bds.close();
         }
@@ -160,7 +160,7 @@ public class MysqlDaoImpl extends Dao {
                     }
                 }
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("执行sql语句错误：" + toString);
             throw ex;
         }
@@ -206,7 +206,7 @@ public class MysqlDaoImpl extends Dao {
                         }
                     }
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + sqls);
                 throw ex;
             }
@@ -226,7 +226,7 @@ public class MysqlDaoImpl extends Dao {
                 if (showSql) {
                     log.error("\n表：" + sqls + "\n 创建完成；");
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + sqls);
                 throw ex;
             }

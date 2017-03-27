@@ -1,7 +1,8 @@
 package net.sz.test;
 
 import net.sz.game.engine.navmesh.path.NavMap;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class ExceptionTest {
 
-    private static final Logger log = Logger.getLogger(ExceptionTest.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) {
 

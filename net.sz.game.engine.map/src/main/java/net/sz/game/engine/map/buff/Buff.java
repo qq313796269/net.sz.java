@@ -1,11 +1,10 @@
 package net.sz.game.engine.map.buff;
 
-import net.sz.game.engine.map.spirit.PersonAttribute;
 import java.io.Serializable;
-import net.sz.game.engine.struct.ObjectAttribute;
-import net.sz.game.engine.struct.ObjectAttribute;
 import net.sz.game.engine.map.spirit.Person;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.map.spirit.PersonAttribute;
+import net.sz.game.engine.struct.ObjectAttribute;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -16,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class Buff implements Serializable {
 
-    private static final Logger log = Logger.getLogger(Buff.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = -5268440796228819406L;
     private transient Person attacker;
     //buffid
@@ -82,7 +81,7 @@ public class Buff implements Serializable {
     //属性值
     private PersonAttribute att = null;
     //不需要保存的
-    private transient ObjectAttribute others = null;
+    private transient ObjectAttribute tmpOthers = null;
 
     public Buff() {
     }
@@ -247,15 +246,15 @@ public class Buff implements Serializable {
         this.att = att;
     }
 
-    public ObjectAttribute getOthers() {
-        if (others == null) {
-            others = new ObjectAttribute();
+    public ObjectAttribute getTmpOthers() {
+        if (tmpOthers == null) {
+            tmpOthers = new ObjectAttribute();
         }
-        return others;
+        return tmpOthers;
     }
 
-    public void setOthers(ObjectAttribute others) {
-        this.others = others;
+    public void setTmpOthers(ObjectAttribute tmpOthers) {
+        this.tmpOthers = tmpOthers;
     }
 
     public int getOverlay() {

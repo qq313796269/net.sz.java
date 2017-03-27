@@ -1,7 +1,7 @@
 package net.sz.game.engine.db;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,7 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 尚未完善的数据集合
@@ -21,7 +22,7 @@ import org.apache.log4j.Logger;
  */
 public class SqliteDaoImpl extends Dao {
 
-    private static final Logger log = Logger.getLogger(SqliteDaoImpl.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final String ifexitstable = "select sum(1) `TABLE_NAME` from sqlite_master where type ='table' and `name`= ? ;";
 
@@ -54,6 +55,8 @@ public class SqliteDaoImpl extends Dao {
 
     public SqliteDaoImpl(String dbUrl, String dbName, String dbUser, String dbPwd, boolean isC3p0, boolean showSql) throws Exception {
         super(dbUrl, dbName, DriverName.SqliteDriver, dbUser, dbPwd, isC3p0, showSql);
+//        new File(dbName).
+        new File(dbName).getParentFile().mkdirs();
     }
 
     /**
@@ -76,7 +79,7 @@ public class SqliteDaoImpl extends Dao {
         if (!startend) {
             try {
                 Class.forName(getConnectionDriverName());
-            } catch (ClassNotFoundException e) {
+            } catch (Throwable e) {
                 log.error(getConnectionDriverName(), e);
             }
             startend = true;
@@ -90,7 +93,10 @@ public class SqliteDaoImpl extends Dao {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
+        if (this.bds == null) {
+            this.bds.close();
+        }
     }
 
     @Override
@@ -173,7 +179,7 @@ public class SqliteDaoImpl extends Dao {
                                     }*/
                     }
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + sqls);
                 throw ex;
             }
@@ -193,7 +199,7 @@ public class SqliteDaoImpl extends Dao {
                 if (showSql) {
                     log.error("\n表：" + sqls + " \n创建完成；");
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + sqls);
                 throw ex;
             }

@@ -1,6 +1,7 @@
 package net.sz.game.engine.thread;
 
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 class CheckThreadTimerThread extends Thread {
 
-    private static final Logger log = Logger.getLogger(CheckThreadTimerThread.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final Object SYN_OBJECT = new Object();
 
     public CheckThreadTimerThread() {
@@ -32,10 +33,10 @@ class CheckThreadTimerThread extends Thread {
                 }
             }
             long begin = System.currentTimeMillis();
-            HashMap<Long, ThreadRunnable> hashMap = new HashMap<>(ThreadPool.getThreadMap());
-            for (Map.Entry<Long, ThreadRunnable> entrySet : hashMap.entrySet()) {
+            HashMap<Long, SzThread> hashMap = new HashMap<>(ThreadPool.getThreadMap());
+            for (Map.Entry<Long, SzThread> entrySet : hashMap.entrySet()) {
                 Long key = entrySet.getKey();
-                ThreadRunnable value = entrySet.getValue();
+                SzThread value = entrySet.getValue();
                 value.showStackTrace();
             }
             long tmp = (System.currentTimeMillis() - begin);

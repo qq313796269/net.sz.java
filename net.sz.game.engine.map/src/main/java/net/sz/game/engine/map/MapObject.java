@@ -1,46 +1,32 @@
 package net.sz.game.engine.map;
 
 import java.io.Serializable;
-import java.util.HashSet;
+import net.sz.game.engine.map.manager.AbsMapManager;
+import net.sz.game.engine.map.spirit.Person;
 import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.struct.ObjectBase;
 import net.sz.game.engine.struct.Vector;
+import net.sz.game.engine.szlog.SzLogger;
 import net.sz.game.engine.util.ConcurrentHashSet;
 import net.sz.game.engine.utils.BitUtil;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.utils.MoveUtil;
 
 /**
- *
+ * 一切地图场景对象基对象
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public abstract class MapObject extends ObjectBase implements Serializable {
+public abstract class MapObject extends ObjectBase implements Serializable, Cloneable {
 
-    private static final Logger log = Logger.getLogger(MapObject.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = 6980610322867696907L;
 
-    protected int lineId;
-    protected long mapId;
-    protected int mapModelId;
-    /*地图线程分组线程组*/
-    protected int mapThreadNext;
-    /*地图线程*/
-    protected long mapThread;
-    /*模型id*/
-    protected int modelId;
+    // <editor-fold defaultstate="collapsed" desc="场景对象类型 public enum SpiritType">
     /**
-     * 进入地图时间
+     * 场景对象类型
      */
-    protected long enterMapTime;
-    protected Vector3 position = null;
-    protected Vector vectorDir = null;
-    //是否显示
-    protected transient boolean show = true;
-    protected ConcurrentHashSet<Long> hideSet = new ConcurrentHashSet<>();
-    protected ConcurrentHashSet<Long> showSet = new ConcurrentHashSet<>();
-
     public enum SpiritType {
         /**
          * 0, 0, "无特殊"
@@ -82,6 +68,18 @@ public abstract class MapObject extends ObjectBase implements Serializable {
          * 9, 1, "内部机器人"
          */
         ROBOT(9, 1, "内部机器人"), // 内部机器人
+        /**
+         * 15, 2, "陷阱"
+         */
+        TRAP(15, 2, "陷阱"), // 陷阱
+        /**
+         * 16, 2, "炮台"
+         */
+        BATTERY(16, 2, "炮台"), // 炮台
+        /**
+         * 17, 2, "阻挡门"
+         */
+        DOOR(17, 2, "阻挡门"), // 阻挡门
         ;
 
         private final byte _type;
@@ -130,9 +128,39 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         }
 
     }
+    // </editor-fold>
 
-//对象类型
-    protected SpiritType spiritType;
+    protected int lineId;
+    protected long mapId;
+    protected int mapModelId;
+    /* 地图键值 */
+    protected String mapKey;
+    /*模型id*/
+    protected int modelId;
+    /*模型半径,一般用于体形巨大的怪物上,如炎魔*/
+    protected float modelRadius;
+    /*进入地图时间*/
+    protected long enterMapTime;
+    /*坐标位置*/
+    protected Vector3 position = null;
+    /*方向信息*/
+    protected Vector vectorDir = null;
+    /*该对象的隐藏对象*/
+    protected ConcurrentHashSet<Long> hideSet = new ConcurrentHashSet<>();
+    /*显示列表*/
+    protected ConcurrentHashSet<Long> showSet = new ConcurrentHashSet<>();
+    /*对象类型*/
+    protected SpiritType spiritType = SpiritType.NONE;
+    /*地图区域Id*/
+    protected transient int mapAreaId;
+    /*显示状态*/
+    protected transient boolean show = true;
+    /*该对象 true 不能移动*/
+    protected transient boolean canNotMove = false;
+    /*该对象 true 不能攻击别人*/
+    protected transient boolean canNotAttack = false;
+    /*该对象 true 不能被攻击*/
+    protected transient boolean canNotCoAttack = false;
 
     /**
      * 设置对象的唯一Id
@@ -147,20 +175,14 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         this.lineId = mapObject.lineId;
         this.mapId = mapObject.mapId;
         this.mapModelId = mapObject.mapModelId;
+        this.mapKey = mapObject.mapKey;
     }
 
     public void inMapObject(int lineId, long mapId, int mapModelId) {
         this.lineId = lineId;
         this.mapId = mapId;
         this.mapModelId = mapModelId;
-    }
-
-    public void inMapObject(int lineId, long mapId, int mapModelId, int mapThreadNext, long mapThread) {
-        this.lineId = lineId;
-        this.mapId = mapId;
-        this.mapModelId = mapModelId;
-        this.mapThreadNext = mapThreadNext;
-        this.mapThread = mapThread;
+        this.mapKey = AbsMapManager.getMapSkey(mapId, mapModelId, lineId);
     }
 
     public Vector3 getPosition() {
@@ -193,6 +215,14 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         this.spiritType = spiritType;
     }
 
+    public int getMapAreaId() {
+        return mapAreaId;
+    }
+
+    public void setMapAreaId(int mapAreaId) {
+        this.mapAreaId = mapAreaId;
+    }
+
     public int getLineId() {
         return lineId;
     }
@@ -223,6 +253,14 @@ public abstract class MapObject extends ObjectBase implements Serializable {
 
     public void setModelId(int modelId) {
         this.modelId = modelId;
+    }
+
+    public String getMapKey() {
+        return mapKey;
+    }
+
+    public void setMapKey(String mapKey) {
+        this.mapKey = mapKey;
     }
 
     public long getEnterMapTime() {
@@ -263,22 +301,6 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         this.showSet = showSet;
     }
 
-    public int getMapThreadNext() {
-        return mapThreadNext;
-    }
-
-    public void setMapThreadNext(int mapThreadNext) {
-        this.mapThreadNext = mapThreadNext;
-    }
-
-    public long getMapThread() {
-        return mapThread;
-    }
-
-    public void setMapThread(long mapThread) {
-        this.mapThread = mapThread;
-    }
-
     public void addHide(long hide) {
         this.hideSet.add(hide);
     }
@@ -295,15 +317,120 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         this.showSet.add(show);
     }
 
-    @Override
-    public String toString() {
-        return super.toString() + ",lineId=" + lineId + ", mapId=" + mapId + ", mapModelId=" + mapModelId + ", modelId=" + modelId + ", position=" + position + ", vectorDir=" + vectorDir + ", spiritType=" + spiritType.getMsg();
+    public float getModelRadius() {
+        return modelRadius;
     }
 
+    public void setModelRadius(float modelRadius) {
+        this.modelRadius = modelRadius;
+    }
+
+    public boolean isCanNotMove() {
+        return canNotMove;
+    }
+
+    public void setCanNotMove(boolean canNotMove) {
+        this.canNotMove = canNotMove;
+    }
+
+    public boolean isCanNotAttack() {
+        return canNotAttack;
+    }
+
+    public void setCanNotAttack(boolean canNotAttack) {
+        this.canNotAttack = canNotAttack;
+    }
+
+    public boolean isCanNotCoAttack() {
+        return canNotCoAttack;
+    }
+
+    public void setCanNotCoAttack(boolean canNotCoAttack) {
+        this.canNotCoAttack = canNotCoAttack;
+    }
+
+    /**
+     * 检查是否可以攻击
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canAttack() {
+        return !this.canNotAttack;
+    }
+
+    /**
+     * 检查是否可以攻击
+     *
+     * @param target 目标对象
+     * @return boolean true 能 false 不能
+     */
+    public boolean canAttack(Person target) {
+        if (target == null) {
+            return false;
+        }
+        if (this.canAttack()) {
+            /*自己可攻击的情况下判断对方是否是可被攻击状态*/
+            return target.canUnCoAttack();
+        }
+        return false;
+    }
+
+    /**
+     * 是否允许释放技能,不能使用技能的时候是可以使用普通攻击
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canUseSkill() {
+        return true;
+    }
+
+    /**
+     * 检查是否可以被攻击
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canUnCoAttack() {
+        return !this.canNotCoAttack;
+    }
+
+    /**
+     * 检查是否能移动
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canMove() {
+        return !this.canNotMove;
+    }
+
+    /**
+     * 检查是否可以被拉取
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canMoveLaQu() {
+        return true;
+    }
+
+    /**
+     * 检查是否可以被击退
+     *
+     * @return boolean true 能 false 不能
+     */
+    public boolean canMoveJiTui() {
+        return true;
+    }
+
+    /**
+     * 是否可以看见
+     *
+     * @param person
+     * @return
+     */
     public boolean canSee(MapObject person) {
 
         /*如果在隐藏列表*/
-        if (this.getHideSet().contains(person.getModelId() * 1l)
+        if (person == null
+                || this.getHideSet().contains(person.getModelId())
                 || this.getHideSet().contains(person.getId())) {
             return false;
         }
@@ -311,14 +438,12 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         if (!show) {
             if (this.spiritType.getGroup() == SpiritType.PLAYER.getGroup()) {
                 this.show = true;
-            } else {
-                /*如果在显示列表里面*/
-                if (!this.getShowSet().contains(person.getModelId() * 1l)
-                        && !this.getShowSet().contains(person.getId())) {
-                    return false;
-                }
+            } else /*如果在显示列表里面*/ if (!this.getShowSet().contains(person.getModelId() * 1l)
+                    && !this.getShowSet().contains(person.getId())) {
+                return false;
             }
         }
+
         /*相互判断*/
         if (person.getHideSet().contains(this.getModelId() * 1l)
                 || person.getHideSet().contains(this.getId())) {
@@ -329,14 +454,48 @@ public abstract class MapObject extends ObjectBase implements Serializable {
         if (!person.show) {
             if (person.spiritType.getGroup() == SpiritType.PLAYER.getGroup()) {
                 this.show = true;
-            } else {
-                /*如果在显示列表里面*/
-                if (!person.getShowSet().contains(this.getModelId() * 1l)
-                        && !person.getShowSet().contains(this.getId())) {
-                    return false;
-                }
+            } else /*如果在显示列表里面*/ if (!person.getShowSet().contains(this.getModelId() * 1l)
+                    && !person.getShowSet().contains(this.getId())) {
+                return false;
             }
         }
         return show;
     }
+
+    /**
+     * 计算两个场景对象距离
+     *
+     * @param object
+     * @return
+     */
+    public double distance(MapObject object) {
+        if (object == null) {
+            return 0;
+        }
+        return distance(object.position.getX(), object.position.getZ(), object.modelRadius);
+    }
+
+    /**
+     * 计算两个场景对象距离
+     *
+     * @param x
+     * @param z
+     * @param r 计算距离的时候，场景对象半径
+     * @return
+     */
+    public double distance(double x, double z, double r) {
+        double distance = MoveUtil.distance(this.position.getX(), this.position.getZ(), x, z);
+        return distance - this.modelRadius - r;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ",lineId=" + lineId + ", mapId=" + mapId + ", mapModelId=" + mapModelId + ", modelId=" + modelId + ", position=" + position + ", vectorDir=" + vectorDir + ", spiritType=" + spiritType.getMsg();
+    }
+
+    @Override
+    public String showString() {
+        return super.showString() + ", position=" + position.showString() + ", vectorDir=" + vectorDir.showString() + ", spiritType=" + spiritType.getMsg();
+    }
+
 }

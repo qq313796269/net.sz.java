@@ -10,7 +10,8 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 插件，生产handler程序
@@ -21,7 +22,7 @@ import org.apache.log4j.Logger;
  */
 public class ProtoBufHandlerUtil {
 
-    private static final Logger log = Logger.getLogger(ProtoBufHandlerUtil.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final String[] DEFAULT_INCLUDES = new String[]{"java"};
     private String savePath;
     private CreateType[] CreateTypes = null;
@@ -56,7 +57,7 @@ public class ProtoBufHandlerUtil {
         /**
          * 游戏服务器 22, "Res"
          */
-        //        GSRes(22, "Res"),
+        GSRes(22, "Res"),
         /**
          * 数据中心 31, "GD"
          */
@@ -111,9 +112,10 @@ public class ProtoBufHandlerUtil {
                     userPath + File.separator + "src" + File.separator + "main" + File.separator + "java" + File.separator,
                     "com" + File.separator + "game" + File.separator + "proto" + File.separator + "handler", create);
             handler.execute();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("", e);
         }
+        System.exit(0);
     }
 
     /**
@@ -123,7 +125,6 @@ public class ProtoBufHandlerUtil {
      */
     public static void createScriptHandler(String pathString, CreateType... create) {
         try {
-
             String userPath = System.getProperty("user.dir");
             String replace = userPath.replace("-scripts", "").replace(File.separator, "=");
             String[] split = replace.split("=");
@@ -141,6 +142,7 @@ public class ProtoBufHandlerUtil {
         } catch (Exception e) {
             log.error("", e);
         }
+        System.exit(0);
     }
 
     /**
@@ -182,7 +184,9 @@ public class ProtoBufHandlerUtil {
         getRfFiles(rfFiles, basedir);
         for (File file : rfFiles) {
             try {
-                log.info(getFilecounts(file).toString());
+                if (log.isInfoEnabled()) {
+                    log.info(getFilecounts(file).toString());
+                }
             } catch (FileNotFoundException ex) {
                 log.error("找不到文件1", ex);
             } catch (IOException ex) {
@@ -221,7 +225,9 @@ public class ProtoBufHandlerUtil {
                 String readLine = br.readLine();
                 if (packageName.equals("") && readLine.startsWith(packagePatten)) {
                     packageName = readLine.replace(packagePatten, "").replace(";", "");// + ".handler";
-                    log.info("packageName:: " + packageName);
+                    if (log.isInfoEnabled()) {
+                        log.info("packageName:: " + packageName);
+                    }
                 } else if (readLine.matches(messagePatten)) {
                     int indexOf0 = readLine.indexOf("class ") + 6;
                     int indexOf1 = readLine.indexOf(" extends");
@@ -252,12 +258,16 @@ public class ProtoBufHandlerUtil {
                 String fileName = className.replace("Message", "Handler.java"); // UserVersionMessageHandler.java
                 // String filePath = sourceDirectory + "\\" + packageName.replace(".", "\\") + "\\handler\\" + module+ "\\"+ fileName; // E:\game\game\game-plugin\src\main\java\com\game\proto\handler\UserVersionMessageHandler.java
                 String filePath = outFile + "\\" + module + "\\" + fileName;
-                log.info("fileName " + fileName);
-                log.info("filePath " + filePath);
+                if (log.isInfoEnabled()) {
+                    log.info("fileName " + fileName);
+                    log.info("filePath " + filePath);
+                }
                 File newFile = new File(filePath);
                 if (!newFile.exists()) {
                     createFile(newFile);
-                    log.info("创建成功");
+                    if (log.isInfoEnabled()) {
+                        log.info("创建成功");
+                    }
 
                     {
                         // 写入类容
@@ -269,16 +279,18 @@ public class ProtoBufHandlerUtil {
                             resClassName = className;
                             resClassName = resClassName.replaceFirst("Req", "Res");
                         }
-                        log.info("================");
-                        log.info(newFile.toString());
-                        log.info(packageName); // com.game.loginsr.proto
-                        log.info(protoName); // LoginMessage
-                        log.info(reqClassName); // ReqCreateSelectUserCmd
-                        log.info(resClassName); // ResCreateSelectUserCmd
-                        log.info("================");
+                        if (log.isInfoEnabled()) {
+                            log.info("================");
+                            log.info(newFile.toString());
+                            log.info(packageName); // com.game.loginsr.proto
+                            log.info(protoName); // LoginMessage
+                            log.info(reqClassName); // ReqCreateSelectUserCmd
+                            log.info(resClassName); // ResCreateSelectUserCmd
+                            log.info("================");
+                        }
                         genCodeTemplate(newFile, packageName, protoName, reqClassName, resClassName, module);
                     }
-                } else {
+                } else if (log.isInfoEnabled()) {
                     log.info("已经存在");
                 }
             }
@@ -321,7 +333,8 @@ public class ProtoBufHandlerUtil {
         code.append("import net.sz.game.engine.nio.nettys.tcp.NettyTcpHandler;").append("\n");
         code.append("import net.sz.game.engine.scripts.IInitBaseScript;").append("\n");
         code.append("import ").append(importProto).append(";").append("\n");
-        code.append("import org.apache.log4j.Logger;").append("\n");
+        code.append("").append("\n");
+        code.append("import net.sz.game.engine.szlog.SzLogger;").append("\n");
         code.append("").append("\n");
         code.append("").append("\n");
         code.append("/**").append("\n");
@@ -332,14 +345,14 @@ public class ProtoBufHandlerUtil {
         code.append(" * phone 13882122019<br>").append("\n");
         code.append(" */").append("\n");
         code.append("public final class ").append(reqClassName).append("Handler extends NettyTcpHandler implements IInitBaseScript {").append("\n");
-        code.append("    private static final Logger log = Logger.getLogger(").append(reqClassName).append("Handler.class);").append("\n");
+        code.append("    private static SzLogger log = SzLogger.getLogger();\n");
         code.append("    ").append("\n");
         code.append("    @Override").append("\n");
         code.append("    public void _init() {").append("\n");
-        code.append("    net.sz.engine.io.nettys.NettyPool.getInstance().register(").append("\n");
+        code.append("    net.sz.game.engine.nio.nettys.NettyPool.getInstance().register(").append("\n");
         code.append("           ").append(importProto).append(".xx,//消息消息id").append("\n");
         code.append("           xx,//线程id").append("\n");
-        code.append("           ").append("this.getClass(), //消息执行的handler").append("\n");
+        code.append("           ").append("this, //消息执行的handler").append("\n");
         code.append("           ").append(importProto).append(".").append(reqClassName).append("Message.newBuilder(),//消息体").append("\n");
         code.append("           ").append("0 // mapThreadQueue 协议请求地图服务器中的具体线程,默认情况下,每个地图服务器都有切只有一个Main线程.").append("\n");
         code.append("           ").append("//一般情况下玩家在地图的请求,都是Main线程处理的,然而某些地图,可能会使用多个线程来处理大模块的功能.").append("\n");

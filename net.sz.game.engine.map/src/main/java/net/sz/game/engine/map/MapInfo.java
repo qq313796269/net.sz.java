@@ -3,20 +3,15 @@ package net.sz.game.engine.map;
 import com.google.protobuf.Message;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sz.game.engine.map.manager.AbsMapManager;
-import net.sz.game.engine.map.run.RunTimerTask;
-import net.sz.game.engine.map.thread.MapThread;
+import net.sz.game.engine.map.spirit.Person;
 import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.navmesh.path.NavMap;
-import net.sz.game.engine.thread.TaskEvent;
-import net.sz.game.engine.thread.ThreadPool;
-import net.sz.game.engine.thread.TimerTaskEvent;
-import net.sz.game.engine.util.NodeEnty2;
+import net.sz.game.engine.szlog.SzLogger;
+import net.sz.game.engine.thread.TimerTaskModel;
 import net.sz.game.engine.utils.BitUtil;
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
 
 /**
  * 暂时未使用的
@@ -27,8 +22,7 @@ import org.apache.log4j.Logger;
  */
 public class MapInfo extends MapObject {
 
-    private static final Logger log = Logger.getLogger(MapInfo.class);
-
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = -2839255230502612896L;
 
     public static void main(String[] args) {
@@ -44,57 +38,75 @@ public class MapInfo extends MapObject {
 
     }
 
-    @Override
-    public String toString() {
-        return "MapInfo{" + "round_width=" + round_width + ", round_hieght=" + round_hieght + ", area_width=" + area_width + ", area_height=" + area_height + ", area_Max_Width=" + area_Max_Width + ", area_Max_Height=" + area_Max_Height + ", map_width=" + map_width + ", map_height=" + map_height + ", mapType=" + mapType + ", players=" + players.size() + ", npcs=" + npcs.size() + ", pets=" + pets.size() + ", monsters=" + monsters.size() + ", revives=" + revives.size() + ", magics=" + magics.size() + ", effects=" + effects.size() + ", linkEffects=" + linkEffects.size() + ", dropGoodss=" + dropGoodss.size() + '}';
-    }
-
     // <editor-fold defaultstate="collapsed" desc="地图类型(0普通世界地图 1副本地图 2世界BOSS地图 3战场地图) public static enum MapType">
+    /**
+     * 1世界地图 ,2副本地图 ,3战场地图
+     */
     public static enum MapType {
 
         /**
          * 0 普通世界地图
          */
-        WORLDMAP(0, "普通世界地图"),
+        WORLDMAP(0, 1, "普通世界地图"),
         /**
          * 1 副本地图
          */
-        ZONEMAP(1, "副本地图"),
+        ZONEMAP(1, 2, "副本地图"),
         /**
          * 世界BOSS地图
          */
-        WORLDBOSSMAP(2, "世界BOSS地图"),
+        WORLDBOSSMAP(2, 1, "世界BOSS地图"),
         /**
          * 3 战场地图
          */
-        BATTLEMAP(3, "战场地图"),
+        BATTLEMAP(3, 3, "战场地图"),
         /**
          * 8 挂机地图
          */
-        HANGUP(8, "挂机地图"),
+        HANGUP(8, 1, "挂机地图"),
         /**
          * 9 工会战场地图
          */
-        GUILDBATTLEMAP(9, "工会战场地图"),
+        GUILDBATTLEMAP(9, 3, "工会战场地图"),
         /**
          * 13 平衡战场地图
          */
-        BALANCEBATTLEMAP(13, "平衡战场地图"),
+        BALANCEBATTLEMAP(13, 3, "平衡战场地图"),
         /**
          * 14 城战地图
          */
-        CITYBATTLEMAP(14, "城战地图"),;
+        CITYBATTLEMAP(14, 3, "城战地图"),
+        /**
+         * 15, "新手引导地图"
+         */
+        PLOTMAP(15, 2, "新手引导地图"),;
 
         private final int value;
+        private final int group;
         private final String msg;
 
-        private MapType(int value, String msg) {
+        private MapType(int value, int group, String msg) {
             this.value = value;
+            this.group = group;
             this.msg = msg;
         }
 
+        /**
+         * 具体地图类型
+         *
+         * @return
+         */
         public int getValue() {
             return value;
+        }
+
+        /**
+         * 地图类型分组，1表示世界地图，2表示副本地图,3战场地图
+         *
+         * @return
+         */
+        public int getGroup() {
+            return group;
         }
 
         public String getMsg() {
@@ -140,34 +152,31 @@ public class MapInfo extends MapObject {
     private long playerQuitMapTime;
     /*地图是否已经刷新*/
     private boolean refresh;
-    /*处理地图寻路设置，又服务器寻路路径移动，怪物，npc，玩家*/
-    private RunTimerTask personRunTimerTask;
-    /**/
-//    private RunTimerTask playerRunTimerTask;
-    /* 在创建 npc 怪物，玩家，和 机器人等情况的时候，分配线程 */
-    private final ConcurrentHashMap<Integer, NodeEnty2<Long, Object>> mapthreadMap = new ConcurrentHashMap<>();
-
     /* 因为单线程处理不考虑线程安全性 */
     //玩家列表
-    private final ConcurrentHashMap<Long, MapObject> players = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Person> players = new ConcurrentHashMap<>();
     //npc列表
-    private final ConcurrentHashMap<Long, MapObject> npcs = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Person> npcs = new ConcurrentHashMap<>();
     //宠物列表
-    private final ConcurrentHashMap<Long, MapObject> pets = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Person> pets = new ConcurrentHashMap<>();
     //怪物列表
-    private final ConcurrentHashMap<Long, MapObject> monsters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Person> monsters = new ConcurrentHashMap<>();
     //等待复活怪物列表
-    private final ConcurrentHashMap<Long, MapObject> revives = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, Person> revives = new ConcurrentHashMap<>();
     /* 地面魔法 */
     private final ConcurrentHashMap<Long, MapObject> magics = new ConcurrentHashMap<>();
     /* 场景特效 */
     private final ConcurrentHashMap<Long, MapObject> effects = new ConcurrentHashMap<>();
-    /* 链接特效列表 */
-    private final ConcurrentHashMap<Long, Message> linkEffects = new ConcurrentHashMap<>();
     /* 场景掉落物 */
     private final ConcurrentHashMap<Long, MapObject> dropGoodss = new ConcurrentHashMap<>();
-
+    /* 链接特效列表 */
+    private final ConcurrentHashMap<Long, Message> linkEffects = new ConcurrentHashMap<>();
+    /* 场景所有区域信息 */
     private final ConcurrentHashMap<Integer, MapArea> areas = new ConcurrentHashMap<>();
+    /**
+     * 地图所有定时器
+     */
+    private final ConcurrentHashMap<Long, TimerTaskModel> timerTaskMap = new ConcurrentHashMap<>();
 
     private int playerNumber;
 
@@ -202,6 +211,7 @@ public class MapInfo extends MapObject {
         this.mapType = mapType;
         this.area_Max_Width = MoveUtil.seat(this.map_width, this.area_width);
         this.area_Max_Height = MoveUtil.seat(this.map_height, this.area_height);
+
     }
 
     @Deprecated
@@ -238,14 +248,6 @@ public class MapInfo extends MapObject {
     @Override
     public void setPosition(Vector3 position) {
         this.position = position;
-    }
-
-    public RunTimerTask getPersonRunTimerTask() {
-        return personRunTimerTask;
-    }
-
-    public void setPersonRunTimerTask(RunTimerTask personRunTimerTask) {
-        this.personRunTimerTask = personRunTimerTask;
     }
 
 //    public RunTimerTask getPlayerRunTimerTask() {
@@ -403,23 +405,23 @@ public class MapInfo extends MapObject {
         return dropGoodss;
     }
 
-    public ConcurrentHashMap<Long, MapObject> getPlayers() {
+    public ConcurrentHashMap<Long, Person> getPlayers() {
         return players;
     }
 
-    public ConcurrentHashMap<Long, MapObject> getNpcs() {
+    public ConcurrentHashMap<Long, Person> getNpcs() {
         return npcs;
     }
 
-    public ConcurrentHashMap<Long, MapObject> getPets() {
+    public ConcurrentHashMap<Long, Person> getPets() {
         return pets;
     }
 
-    public ConcurrentHashMap<Long, MapObject> getMonsters() {
+    public ConcurrentHashMap<Long, Person> getMonsters() {
         return monsters;
     }
 
-    public ConcurrentHashMap<Long, MapObject> getRevives() {
+    public ConcurrentHashMap<Long, Person> getRevives() {
         return revives;
     }
 
@@ -435,43 +437,17 @@ public class MapInfo extends MapObject {
         return areas;
     }
 
-    public ConcurrentHashMap<Integer, NodeEnty2<Long, Object>> getMapthreadMap() {
-        return mapthreadMap;
+    public ConcurrentHashMap<Long, TimerTaskModel> getTimerTaskMap() {
+        return timerTaskMap;
     }
 
-    public MapThread nextMapThread() {
-        for (Map.Entry<Integer, NodeEnty2<Long, Object>> entry : this.mapthreadMap.entrySet()) {
-            NodeEnty2<Long, Object> nodeEnty2 = entry.getValue();
-            MapArea tmpArea = nodeEnty2.getValue(1, MapArea.class);
-            if (tmpArea.size() < 20) {
-
-            }
-        }
-        return null;
-    }
-
-    public void addTask(MapObject mapObject, TaskEvent taskModel) {
-        ThreadPool.addTask(mapObject.getMapThread(), taskModel);
-    }
-
-    public void addTimerTask(MapObject mapObject, TimerTaskEvent timerEvent) {
-        ThreadPool.addTimerTask(mapObject.getMapThread(), timerEvent);
-    }
-
-    public void addTask(TaskEvent taskModel) {
-        for (Map.Entry<Integer, NodeEnty2<Long, Object>> entry : this.mapthreadMap.entrySet()) {
-            NodeEnty2<Long, Object> nodeEnty2 = entry.getValue();
-            MapThread tmpThread = nodeEnty2.getValue0(MapThread.class);
-            tmpThread.addTask(taskModel);
-        }
-    }
-
-    public void addTimerTask(TimerTaskEvent timerEvent) {
-        for (Map.Entry<Integer, NodeEnty2<Long, Object>> entry : this.mapthreadMap.entrySet()) {
-            NodeEnty2<Long, Object> nodeEnty2 = entry.getValue();
-            MapThread tmpThread = nodeEnty2.getValue0(MapThread.class);
-            tmpThread.addTimerTask(timerEvent);
-        }
+    /**
+     * 加入到场景对象中而不是线程中
+     *
+     * @param timerEvent
+     */
+    public void addTimerTask(TimerTaskModel timerEvent) {
+        this.timerTaskMap.put(timerEvent.getTaskId(), timerEvent);
     }
 
     /**
@@ -891,8 +867,9 @@ public class MapInfo extends MapObject {
         for (MapArea roundArea : roundAreas) {
 
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.DROP.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getDropGoodss().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getDropGoodss().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getDropGoodss().get(next);
                     if (mapObject != null) {
                         if (modelId == 0 || mapObject.getModelId() == modelId) {
@@ -913,8 +890,9 @@ public class MapInfo extends MapObject {
             }
 
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.MAGIC.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getMagics().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getMagics().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getMagics().get(next);
                     if (mapObject != null) {
                         if (modelId == 0 || mapObject.getModelId() == modelId) {
@@ -924,8 +902,9 @@ public class MapInfo extends MapObject {
                 }
             }
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.EFFECT.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getEffects().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getEffects().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getEffects().get(next);
                     if (mapObject != null) {
                         if (modelId == 0 || mapObject.getModelId() == modelId) {
@@ -935,8 +914,9 @@ public class MapInfo extends MapObject {
                 }
             }
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.MONSTER.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getMonsters().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getMonsters().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getMonsters().get(next);
                     if (mapObject != null) {
                         if (modelId == 0 || mapObject.getModelId() == modelId) {
@@ -949,8 +929,9 @@ public class MapInfo extends MapObject {
 //            if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.NONE.getValue())) {
 //            }
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.NPC.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getNpcs().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getNpcs().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getNpcs().get(next);
                     if (mapObject != null) {
                         if (modelId == 0 || mapObject.getModelId() == modelId) {
@@ -960,8 +941,9 @@ public class MapInfo extends MapObject {
                 }
             }
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.PLAYER.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getPlayers().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getPlayers().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getPlayers().get(next);
                     if (mapObject != null) {
                         tmps.add(mapObject);
@@ -969,8 +951,9 @@ public class MapInfo extends MapObject {
                 }
             }
             if (BitUtil.hasFlagBitLong(spiritType, MapObject.SpiritType.PET.getValue())) {
-                for (Iterator<Long> iterator1 = roundArea.getPets().iterator(); iterator1.hasNext();) {
-                    Long next = iterator1.next();
+                Long[] toArray = roundArea.getPets().toArray(new Long[0]);
+                for (int i = 0; i < toArray.length; i++) {
+                    Long next = toArray[i];
                     MapObject mapObject = this.getPets().get(next);
                     if (mapObject != null) {
                         tmps.add(mapObject);
@@ -988,6 +971,11 @@ public class MapInfo extends MapObject {
      */
     public boolean isEmpty() {
         return this.getPlayers().isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ",map_width=" + map_width + ", map_height=" + map_height + ", mapType=" + mapType.getMsg() + ", doorsize=" + doorsize + ", playerQuitMapTime=" + playerQuitMapTime + ", players=" + players.size() + ", npcs=" + npcs.size() + ", pets=" + pets.size() + ", monsters=" + monsters.size() + ", revives=" + revives.size() + ", magics=" + magics.size() + ", effects=" + effects.size() + ", linkEffects=" + linkEffects.size() + ", dropGoodss=" + dropGoodss.size() + ", zoneOrBattleModelId=" + zoneOrBattleModelId;
     }
 
 }

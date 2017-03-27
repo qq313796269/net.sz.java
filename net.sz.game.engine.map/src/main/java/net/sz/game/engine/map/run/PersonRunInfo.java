@@ -16,11 +16,12 @@ import net.sz.game.engine.utils.MoveUtil;
 public class PersonRunInfo {
 
     protected Vector3 end;    // 当前终点
-    protected Vector3 theEnd;    // 当前终点
+    protected long theId; //追击id
+    protected Vector3 theEnd;   // 最终终点
+    protected float theModelVr; //追踪对象半径，之所以不直接引用对象，万一对象消失怎么办
     //最后一次移动的时间
     protected long lastTime;
     protected PathData roads; //移动点位
-    protected long theId; //追击id
     /*上一次从起点到当前终点移动距离*/
     protected double preDistance;
     protected Person person;
@@ -29,14 +30,14 @@ public class PersonRunInfo {
     protected Double vr;
     /*表示之前所在的视野区域格子*/
     protected int oldAreaId = 0;
-
+    protected Runnable callbackRun = null;
     public AtomicBoolean isStoped = new AtomicBoolean(false);
 
-    public PersonRunInfo(Person person, PathData points, long cooldown, Vector3 theend, long theid, int oldAreaId) {
-        this(person, points, cooldown, theend, theid, oldAreaId, null);
+    public PersonRunInfo(Person person, PathData points, long cooldown, Vector3 theend, float theModelVr, long theid, int oldAreaId) {
+        this(person, points, cooldown, theend, theModelVr, theid, oldAreaId, null, null);
     }
 
-    public PersonRunInfo(Person person, PathData points, long cooldown, Vector3 theend, long theid, int oldAreaId, Double vr) {
+    public PersonRunInfo(Person person, PathData points, long cooldown, Vector3 theend, float theModelVr, long theid, int oldAreaId, Double vr, Runnable callback) {
         this.roads = points;
         this.person = person;
 
@@ -46,11 +47,12 @@ public class PersonRunInfo {
 
         this.theEnd = theend;
         this.theId = theid;
+        this.theModelVr = theModelVr;
 
         this.Cooldown = cooldown;
 
         this.vr = vr;
-
+        this.callbackRun = callback;
         this.end = nextVector3();
         //取消 如果起点和当前坐标在同一个格子，就不在读取
         double distance = Vector3.distance(this.person.getPosition(), this.end);
@@ -63,7 +65,7 @@ public class PersonRunInfo {
             }
         }
         MoveUtil.getV12Vector(this.person.getVectorDir(), this.person.getPosition().getX(), this.person.getPosition().getZ(), this.end.getX(), this.end.getZ());
-        double distance1 = Vector3.distance(this.person.getPosition().getX(), this.person.getPosition().getZ(), this.end.getX(), this.end.getZ());
+        double distance1 = person.distance(this.end.getX(), this.end.getZ(), this.theModelVr);
         /*设置当前距离*/
         this.preDistance = distance1;
     }
@@ -186,6 +188,22 @@ public class PersonRunInfo {
 
     public void setOldAreaId(int oldAreaId) {
         this.oldAreaId = oldAreaId;
+    }
+
+    public Runnable getCallbackRun() {
+        return callbackRun;
+    }
+
+    public void setCallbackRun(Runnable callbackRun) {
+        this.callbackRun = callbackRun;
+    }
+
+    public float getTheModelVr() {
+        return theModelVr;
+    }
+
+    public void setTheModelVr(float theModelVr) {
+        this.theModelVr = theModelVr;
     }
 
 }

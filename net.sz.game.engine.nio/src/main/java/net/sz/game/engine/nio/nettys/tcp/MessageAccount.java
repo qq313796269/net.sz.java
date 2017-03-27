@@ -1,8 +1,8 @@
 package net.sz.game.engine.nio.nettys.tcp;
 
 import javax.persistence.Id;
-import net.sz.game.engine.utils.GlobalUtil;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
+import net.sz.game.engine.utils.LongId0Util;
 
 /**
  *
@@ -13,18 +13,23 @@ import org.apache.log4j.Logger;
  */
 public class MessageAccount {
 
-    private static final Logger log = Logger.getLogger(MessageAccount.class);
+    private static SzLogger log = SzLogger.getLogger();
+    private static LongId0Util ids = new LongId0Util();
 
     @Id
     private long Id;
     private int messageId;
     private int messageCount;
+    private long timer;
 
-    public MessageAccount(int messageId, int messageCount) {
-        this.Id = GlobalUtil.getId();
-        log.debug("MessageAccount：" + this.Id);
+    public MessageAccount(int messageId, int messageCount, long timer) {
+        this.Id = ids.getId();
+        if (log.isDebugEnabled()) {
+            log.debug("MessageAccount：" + this.Id);
+        }
         this.messageId = messageId;
         this.messageCount = messageCount;
+        this.timer = timer;
     }
 
     public long getId() {
@@ -49,6 +54,14 @@ public class MessageAccount {
 
     public void setMessageCount(int messageCount) {
         this.messageCount = messageCount;
+    }
+
+    public long getTimer() {
+        return timer;
+    }
+
+    public void setTimer(long timer) {
+        this.timer = timer;
     }
 
 }

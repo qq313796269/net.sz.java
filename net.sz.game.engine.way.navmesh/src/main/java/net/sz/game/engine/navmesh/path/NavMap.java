@@ -10,13 +10,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.navmesh.KPolygon;
 import net.sz.game.engine.navmesh.PolygonConverter;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.navmesh.Vector3;
+import net.sz.game.engine.utils.MoveUtil;
+import net.sz.game.engine.utils.RandomUtils;
 
 /**
  *
@@ -26,7 +25,6 @@ import org.apache.log4j.Logger;
  */
 public class NavMap {
 
-    private static final Logger log = Logger.getLogger(NavMap.class);
 
     final String readTxtFile(String filePath) {
         try {
@@ -230,20 +228,32 @@ public class NavMap {
     public Vector3 getRandomPointInPaths(double x, double z, double radius, double amend) {
         List<PathBlockingObstacleImpl> list = new ArrayList<>();
         for (PathBlockingObstacleImpl obst : getPathStationaryObstacles()) {
-            double dis = obst.getInnerPolygon().getCenter().distance(x, z);
             if (obst.getInnerPolygon().contains(x, z)) {
                 list.add(obst);
             } else {
+                double dis = obst.getInnerPolygon().getCenter().distance(x, z);
                 if (dis <= radius + amend) {
                     list.add(obst);
                 }
             }
         }
-        PathBlockingObstacleImpl rk = random(list);
-        if (rk == null) {
-            return null;
+
+        Vector3 randomPoint = null;
+        for (int i = 0; i < 10; i++) {
+
+            PathBlockingObstacleImpl rk = random(list);
+            if (rk == null) {
+                return null;
+            }
+
+            randomPoint = rk.getRandomPoint();
+            if (radius != 0 || amend != 0) {
+                if (MoveUtil.distance(randomPoint.getX(), randomPoint.getZ(), x, z) <= radius + amend) {
+                    break;
+                }
+            }
         }
-        return rk.getRandomPoint();
+        return randomPoint;
     }
 
     /**
@@ -252,24 +262,26 @@ public class NavMap {
      * @param collection
      * @return
      */
-    protected PathBlockingObstacleImpl random(Collection<PathBlockingObstacleImpl> collection) {
+    protected PathBlockingObstacleImpl random(List<PathBlockingObstacleImpl> collection) {
         if (collection == null || collection.isEmpty()) {
             return null;
         }
-        int total = 0;
-        for (PathBlockingObstacleImpl b : collection) {
-            total += b.getRandomNum();
-        }
-        int t = (int) (total * Math.random());
-        int i = 0;
-        for (Iterator<PathBlockingObstacleImpl> item = collection.iterator(); i <= t && item.hasNext();) {
-            PathBlockingObstacleImpl next = item.next();
-            i += next.getRandomNum();
-            if (i >= t) {
-                return next;
-            }
-        }
-        return null;
+        int t = RandomUtils.random(collection.size());
+        return collection.get(t);
+//        int total = 0;
+//        for (PathBlockingObstacleImpl b : collection) {
+//            total += b.getRandomNum();
+//        }
+//        int t = (int) (total * Math.random());
+//        int i = 0;
+//        for (Iterator<PathBlockingObstacleImpl> item = collection.iterator(); i <= t && item.hasNext();) {
+//            PathBlockingObstacleImpl next = item.next();
+//            i += next.getRandomNum();
+//            if (i >= t) {
+//                return next;
+//            }
+//        }
+//        return null;
     }
 
     public boolean isBlock(double x, double z) {

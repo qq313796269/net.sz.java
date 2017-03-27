@@ -15,7 +15,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import net.sz.game.engine.nio.nettys.NettyPool;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 客户端连接管理器
@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class NettyTcpClient {
 
-    private static final Logger log = Logger.getLogger(NettyTcpClient.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private Bootstrap bootstrap;
     private EventLoopGroup bossGroup = null;
@@ -78,7 +78,9 @@ public class NettyTcpClient {
         @Override
         public void channelUnregistered(ChannelHandlerContext ctx) {
             String asLongText = ctx.channel().id().asLongText();
-            log.debug("连接断开：" + asLongText);
+            if (log.isDebugEnabled()) {
+                log.debug("连接断开：" + asLongText);
+            }
             NettyPool.getInstance().getSessions().remove(asLongText);
             NettyTcpClient.this.nettyHandler.closeSession(asLongText, ctx);
         }
@@ -86,7 +88,9 @@ public class NettyTcpClient {
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             String asLongText = ctx.channel().id().asLongText();
-            log.debug("连接闲置：" + asLongText);
+            if (log.isDebugEnabled()) {
+                log.debug("连接闲置：" + asLongText);
+            }
             NettyTcpClient.this.nettyHandler.channelInactive(asLongText, ctx);
         }
 
@@ -102,7 +106,9 @@ public class NettyTcpClient {
             NettyCoder.setSessionAttr(ctx, NettyCoder.SessionCreateTime, System.currentTimeMillis());
             NettyCoder.setSessionAttr(ctx, NettyCoder.SessionLastTime, System.currentTimeMillis());
             NettyPool.getInstance().getSessions().put(asLongText, ctx);
-            log.debug("新建：" + asLongText);
+            if (log.isDebugEnabled()) {
+                log.debug("新建：" + asLongText);
+            }
             NettyTcpClient.this.nettyHandler.channelActive(asLongText, ctx);
         }
     };
@@ -139,11 +145,15 @@ public class NettyTcpClient {
      */
     public Channel connect(String host, int port) {
         try {
-            log.info("向 Host=" + host + ", Port=" + port + " 服务器注册");
+            if (log.isInfoEnabled()) {
+                log.info("向 Host=" + host + ", Port=" + port + " 服务器请求 Socket 连接");
+            }
             ChannelFuture channelFuture = bootstrap.connect(host, port);
             return channelFuture.awaitUninterruptibly().channel();
-        } catch (Exception ex) {
-            log.debug("连接", ex);
+        } catch (Throwable ex) {
+            if (log.isDebugEnabled()) {
+                log.debug("连接", ex);
+            }
         }
         return null;
     }

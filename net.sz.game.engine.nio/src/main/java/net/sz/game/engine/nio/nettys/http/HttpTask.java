@@ -1,8 +1,9 @@
 package net.sz.game.engine.nio.nettys.http;
 
 import net.sz.game.engine.nio.nettys.http.handler.IHttpHandler;
-import net.sz.game.engine.thread.TaskEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
+import net.sz.game.engine.thread.TaskModel;
+import net.sz.game.engine.thread.ThreadPool;
 
 /**
  *
@@ -11,9 +12,9 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-class HttpTask extends TaskEvent {
+class HttpTask extends TaskModel {
 
-    private static final Logger log = Logger.getLogger(HttpTask.class);
+    private static SzLogger log = SzLogger.getLogger();
     private IHttpHandler httpHandler;
     private NioHttpRequest requestMessage;
 
@@ -23,13 +24,27 @@ class HttpTask extends TaskEvent {
     }
 
     public void run() {
-
-        httpHandler.run(requestMessage);
+        long bigen = System.currentTimeMillis();
+        httpHandler.run(requestMessage.getUrl(), requestMessage);
         if (!requestMessage.isRespons) {
-            log.error("执行了函数却未执行respons()函数->" + httpHandler.getClass().getName(), new Exception("执行了函数却未执行respons()函数->" + httpHandler.getClass().getName()));
-            requestMessage.close();
+            log.error("未执行 respons() 函数->" + httpHandler.getClass().getName());
+            if (requestMessage.builder == null || requestMessage.builder.length() < 1) {
+                requestMessage.close("未执行 respons() 函数");
+            } else {
+                requestMessage.respons();
+            }
         }
-
+        long timeL1 = System.currentTimeMillis() - bigen;
+        if (timeL1 > 20) {
+            String name = "任务：" + httpHandler.getClass().getName() + " 执行耗时：" + timeL1;
+            /*如果是数据库任务不超过30秒不提示*/
+            if (timeL1 > 30000) {
+                if (ThreadPool.NoticeThreadException_All != null) {
+                    ThreadPool.NoticeThreadException_All.noticeThreadException(new UnsupportedOperationException(name));
+                }
+            } else {
+                log.error(name);
+            }
+        }
     }
-
 }

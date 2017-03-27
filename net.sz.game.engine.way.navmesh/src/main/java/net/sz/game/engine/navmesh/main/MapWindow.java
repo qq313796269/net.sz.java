@@ -11,7 +11,8 @@ import java.util.Random;
 import javax.swing.*;
 import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.navmesh.path.NavMap;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class MapWindow {
 
-    private static final Logger log = Logger.getLogger(MapWindow.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     static JPanel p = new JPanel();
 
@@ -38,7 +39,7 @@ public class MapWindow {
     protected JTextField jtx;
     protected JFileChooser chooser;
     protected String choosertitle;
-    protected Player player;
+    protected MovePlayer player;
     protected Main main;
 
     public MapWindow(Main main) {
@@ -226,7 +227,7 @@ public class MapWindow {
         } catch (Exception e) {
             log.error("Map:" + e.toString());
         }
-        player = new Player(map);
+        player = new MovePlayer(map);
         return new ViewPane(player);
     }
 

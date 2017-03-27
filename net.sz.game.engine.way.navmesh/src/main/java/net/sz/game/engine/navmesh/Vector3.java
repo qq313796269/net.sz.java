@@ -14,6 +14,8 @@ import net.sz.game.engine.utils.MoveUtil;
  */
 public class Vector3 implements Serializable {
 
+    private static final long serialVersionUID = 3260361296549323149L;
+
     static public final Vector3 ZERO = new Vector3();
     static private final Random random = new Random();
     static public final float GAILV = 0.7071068f;
@@ -184,7 +186,7 @@ public class Vector3 implements Serializable {
         double distance;
         currentAngle = Math.atan2(z - zCenter, x - xCenter);
         currentAngle += angle;
-        distance = Vector3.distance(x, z, xCenter, zCenter);
+        distance = MoveUtil.distance(x, z, xCenter, zCenter);
         x = xCenter + (distance * Math.cos(currentAngle));
         z = zCenter + (distance * Math.sin(currentAngle));
     }
@@ -268,7 +270,7 @@ public class Vector3 implements Serializable {
         Vector3 p = this.copy();
         double currentAngle = Math.atan2(p.z - zCenter, p.x - xCenter);
         currentAngle += angle;
-        double distance = Vector3.distance(p.x, p.z, xCenter, zCenter);
+        double distance = MoveUtil.distance(p.x, p.z, xCenter, zCenter);
         p.x = xCenter + (distance * Math.cos(currentAngle));
         p.z = zCenter + (distance * Math.sin(currentAngle));
         return p;
@@ -298,7 +300,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public double distance(Vector3 p) {
-        return distance(this.x, this.z, p.x, p.z);
+        return MoveUtil.distance(this.x, this.z, p.x, p.z);
     }
 
     /**
@@ -309,7 +311,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public double distance(double x2, double z2) {
-        return distance(this.x, this.z, x2, z2);
+        return MoveUtil.distance(this.x, this.z, x2, z2);
     }
 
     /**
@@ -320,7 +322,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public static double distance(Vector3 p, Vector3 p2) {
-        return distance(p.x, p.z, p2.x, p2.z);
+        return MoveUtil.distance(p.x, p.z, p2.x, p2.z);
     }
 
     /**
@@ -332,7 +334,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public static double distance(Vector3 p, double x2, double z2) {
-        return distance(p.x, p.z, x2, z2);
+        return MoveUtil.distance(p.x, p.z, x2, z2);
     }
 
     /**
@@ -344,22 +346,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public static double distance(double x1, double z1, Vector3 p2) {
-        return distance(x1, z1, p2.x, p2.z);
-    }
-
-    /**
-     * 计算两点距离
-     *
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     * @return
-     */
-    public static double distance(double x1, double z1, double x2, double z2) {
-        x1 -= x2;
-        z1 -= z2;
-        return Math.sqrt(x1 * x1 + z1 * z1);
+        return MoveUtil.distance(x1, z1, p2.x, p2.z);
     }
 
     /**
@@ -369,7 +356,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public double distanceSq(Vector3 p) {
-        return distanceSq(this.x, this.z, p.x, p.z);
+        return MoveUtil.distanceSq(this.x, this.z, p.x, p.z);
     }
 
     /**
@@ -380,22 +367,7 @@ public class Vector3 implements Serializable {
      * @return
      */
     public double distanceSq(double x2, double z2) {
-        return distanceSq(this.x, this.z, x2, z2);
-    }
-
-    /**
-     * 未开平方根的距离
-     *
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     * @return
-     */
-    public static double distanceSq(double x1, double z1, double x2, double z2) {
-        x1 -= x2;
-        z1 -= z2;
-        return (x1 * x1 + z1 * z1);
+        return MoveUtil.distanceSq(this.x, this.z, x2, z2);
     }
 
     public static boolean collinear(double x1, double z1, double x2, double z2, double x3, double y3) {
@@ -701,6 +673,10 @@ public class Vector3 implements Serializable {
     @Override
     public String toString() {
         return "{" + "x=" + x + ", y=" + y + ", z=" + z + '}';
+    }
+
+    public String showString() {
+        return "{" + "x=" + x + ", z=" + z + '}';
     }
 
     /**

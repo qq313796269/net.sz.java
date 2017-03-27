@@ -1,7 +1,8 @@
 package net.sz.game.engine.map.spirit;
 
 import net.sz.game.engine.utils.BitUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class PersonState implements java.io.Serializable {
 
-    private static final Logger log = Logger.getLogger(PersonState.class);
+    private static SzLogger log = SzLogger.getLogger();
     private long state = 0;
 
     public enum Key {
@@ -122,8 +123,24 @@ public class PersonState implements java.io.Serializable {
          * 不能加魔法
          */
         CAN_NOT_ADDMP(27, 27, 27, "不能加魔法"),
+        /**
+         * 不能被击退
+         */
+        CAN_NOT_MOVE_JITUI(28, 28, 28, "不能被击退"),
+        /**
+         * 不能拉取
+         */
+        CAN_NOT_MOVE_LAQU(29, 29, 29, "不能拉取"),
         /*===========================依赖buff状态=============================*/
         /*===========================下面是需要清理的状态，死亡复活后===========================*/
+        /**
+         * 49, 49, 49, "眩晕状态"
+         */
+        Vertigo(49, 49, 49, "眩晕状态"),
+        /**
+         * 50, 50, 50, "无敌状态"
+         */
+        ATTMISS(50, 50, 50, "无敌状态"),
         /**
          * 往回跑,比如怪物跑回出生点
          */
@@ -167,7 +184,7 @@ public class PersonState implements java.io.Serializable {
         /**
          * 恐惧状态
          */
-        FEAR(61, 61, 61, "是否可以移动"),
+        FEAR(61, 61, 61, "恐惧状态"),
         /**
          * 狂暴状态
          */
@@ -225,11 +242,11 @@ public class PersonState implements java.io.Serializable {
 
     static {
         /*创建分组信息*/
-        for (int i = 9; i <= 27; i++) {
+        for (int i = 9; i <= 29; i++) {
             ReviveState1 += 1L << i;
         }
         /*创建分组信息*/
-        for (int i = 51; i <= 63; i++) {
+        for (int i = 49; i <= 63; i++) {
             ReviveState2 += 1L << i;
         }
     }
@@ -250,19 +267,22 @@ public class PersonState implements java.io.Serializable {
     /**
      * 清理状态，ReviveState2，并且设置 Key.STAND<br>
      *
-     * @param isPlayer 是否是怪物
+     * @param isPlayer true 表示玩家
      */
     public void resetStatus(boolean isPlayer) {
         if (!isPlayer) {
             /*清理状态*/
             state = BitUtil.removeBitLong(state, ReviveState1);
         }
+
         /*清理状态*/
         state = BitUtil.removeBitLong(state, ReviveState2);
+
         /*设置站立状态*/
         addStatus(Key.STAND);
         /*设置正常状态*/
         addStatus(Key.NORMAL);
+
     }
 
     public String show() {

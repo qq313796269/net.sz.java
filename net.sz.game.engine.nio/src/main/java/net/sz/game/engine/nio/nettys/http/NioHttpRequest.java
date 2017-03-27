@@ -2,18 +2,15 @@ package net.sz.game.engine.nio.nettys.http;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -25,7 +22,7 @@ import org.apache.log4j.Logger;
  */
 public final class NioHttpRequest {
 
-    private static final Logger log = Logger.getLogger(NioHttpRequest.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public enum HttpContentType {
 
@@ -57,9 +54,10 @@ public final class NioHttpRequest {
     private FullHttpRequest request;
     //post或者get完整参数
     private HashMap<String, String> params;
-    //直接post或者content参数
+
     private String url;
     private String ip;
+    //直接post或者content参数
     private String httpBody;
     protected boolean isRespons = false;
     StringBuilder builder = new StringBuilder();
@@ -80,16 +78,30 @@ public final class NioHttpRequest {
         builder.append(msg).append("\r\n");
     }
 
+    /**
+     * HttpContentType.All 回复 http 请求
+     */
+    public void respons() {
+        this.respons(HttpContentType.Html);
+    }
+
+    /**
+     * 回复http请求
+     *
+     * @param contentType
+     */
     public void respons(HttpContentType contentType) {
         try {
             FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.wrappedBuffer(builder.toString().getBytes("utf-8")));
             response.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+            response.headers().set(HttpHeaders.Names.CONTENT_ENCODING, "utf-8");
+            response.headers().set(HttpHeaders.Names.ACCEPT_CHARSET, "utf-8");
             response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
             session.writeAndFlush(response);
             session.close();
             isRespons = true;
-        } catch (Exception ex) {
-            log.error("HttpRequestMessage.respons失败", ex);
+        } catch (Throwable ex) {
+            log.error("HttpRequestMessage.respons 失败", ex);
         }
     }
 
@@ -97,14 +109,14 @@ public final class NioHttpRequest {
      * 将会返回404错误
      */
     public void close() {
-        try {
-            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND, Unpooled.wrappedBuffer("404 NOT FOUND".getBytes("utf-8")));
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, HttpContentType.Text);
-            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
-            session.writeAndFlush(response);
-            session.close();
-        } catch (UnsupportedEncodingException ex) {
-        }
+        close(null);
+    }
+
+    /**
+     * 返回关闭情况
+     */
+    public void close(String msg) {
+        NettyHttpServer.close(session, msg);
     }
 
     public ChannelHandlerContext getSession() {

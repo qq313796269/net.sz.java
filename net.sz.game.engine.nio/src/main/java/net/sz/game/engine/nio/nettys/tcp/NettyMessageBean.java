@@ -1,7 +1,7 @@
 package net.sz.game.engine.nio.nettys.tcp;
 
-import io.netty.channel.ChannelHandlerContext;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
  */
 public class NettyMessageBean {
 
-    private static final Logger log = Logger.getLogger(NettyMessageBean.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private int msgid;
     private byte[] msgbuffer;

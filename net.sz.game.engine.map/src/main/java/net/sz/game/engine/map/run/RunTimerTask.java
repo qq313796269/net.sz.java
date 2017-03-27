@@ -3,11 +3,13 @@ package net.sz.game.engine.map.run;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sz.game.engine.map.MapInfo;
 import net.sz.game.engine.map.spirit.Person;
+import net.sz.game.engine.map.thread.MapThread;
 import net.sz.game.engine.navmesh.Vector3;
 import net.sz.game.engine.navmesh.path.PathData;
-import net.sz.game.engine.thread.TimerTaskEvent;
+import net.sz.game.engine.thread.TimerTaskModel;
 import net.sz.game.engine.util.ConcurrentHashSet;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -16,21 +18,20 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public abstract class RunTimerTask extends TimerTaskEvent {
+public abstract class RunTimerTask extends TimerTaskModel {
 
-    private static final Logger log = Logger.getLogger(RunTimerTask.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = -2840856134900737793L;
 
-    protected MapInfo mapInfo;
-    protected int mapThreadNext;
+    protected MapThread mapThread;
 
-    public abstract void findWay(Person person, double endx, double endz, long cooldown, long theid, boolean tellSelf, boolean changeDir);
+    public abstract void findWay(Person person, double endx, double endz, float theModelVr, long cooldown, long theid, boolean tellSelf, boolean changeDir, Runnable callback);
 
-    public abstract void findWay(Person person, double endx, double endz, long cooldown, long theid, Double vr, boolean tellSelf, boolean changeDir);
+    public abstract void findWay(Person person, double endx, double endz, float theModelVr, long cooldown, long theid, Double vr, boolean tellSelf, boolean changeDir, Runnable callback);
 
-    public abstract void findWay(Person person, Vector3 vend, long cooldown, long theid, Double vr, boolean tellSelf, boolean changeDir);
+    public abstract void findWay(Person person, Vector3 vend, float theModelVr, long cooldown, long theid, Double vr, boolean tellSelf, boolean changeDir, Runnable callback);
 
-    public abstract void findWay(Person person, PathData path, long cooldown, Vector3 vend, long theid, Double vr, boolean tellSelf, boolean changeDir);
+    public abstract void findWay(Person person, PathData path, long cooldown, Vector3 vend, float theModelVr, long theid, Double vr, boolean tellSelf, boolean changeDir, Runnable callback);
 
     /**
      * 目前运动
@@ -76,9 +77,10 @@ public abstract class RunTimerTask extends TimerTaskEvent {
     /**
      *
      * @param personId
-     * @param needSendStopMsg 是否发送通知
+     * @param isEnd 是否是正常移动结束
+     * @param sendMsg 是否发送通知
      */
-    public abstract void removeRunInfo(long personId, boolean needSendStopMsg);
+    public abstract void removeRunInfo(long personId, boolean isEnd, boolean sendMsg);
 
     /**
      *

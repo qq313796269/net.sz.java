@@ -4,8 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import net.sz.game.engine.thread.ThreadPool;
-import net.sz.game.engine.thread.TimerTaskEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.thread.TimerTaskModel;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -16,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public class ServerSessionClient {
 
-    private static final Logger log = Logger.getLogger(ServerSessionClient.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) {
         ServerSessionClient serverSessionClient = new ServerSessionClient("127.0.0.1", 6553, 2, 1, new INettyHandler() {
@@ -84,7 +85,7 @@ public class ServerSessionClient {
             @Override
             public void closeSession(String channelId, ChannelHandlerContext session) {
                 serverSessionThread.removeSession(session.channel());
-                resetServer();
+                resetServer(true);
                 if (ServerSessionClient.this.iNettyHandler != null) {
                     ServerSessionClient.this.iNettyHandler.closeSession(channelId, session);
                 }
@@ -93,23 +94,28 @@ public class ServerSessionClient {
         });
 
         for (int i = 0; i < channelCount; i++) {
-            resetServer();
+            resetServer(false);
         }
 
     }
 
-    void resetServer() {
-        log.error("服务器连接失败，3000 秒后。。。。尝试下一次注册");
-        ThreadPool.addTimerTask(ThreadPool.GlobalThread, new TimerTaskEvent(1, 3000) {
+    void resetServer(boolean isReset) {
+        TimerTaskModel timerTaskEvent = new TimerTaskModel(1, 3000) {
 
             @Override
             public void run() {
                 Channel connect = nettyTcpClient.connect(host, port);
                 if (connect == null) {
-                    resetServer();
+                    resetServer(true);
                 }
             }
-        });
+        };
+        if (isReset) {
+            log.error("服务器 Host=" + host + ", Port=" + port + " 连接失败，3000 秒后。。。。尝试下一次注册");
+            ThreadPool.addTimerTask(ThreadPool.GlobalThread, timerTaskEvent);
+        } else {
+            ThreadPool.addTask(ThreadPool.GlobalThread, timerTaskEvent);
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package net.sz.game.engine.thread;
 
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -23,7 +24,7 @@ public enum ThreadType {
     int index;
     String msg;
 
-    private static final Logger log = Logger.getLogger(ThreadType.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private ThreadType(int index, String msg) {
         this.index = index;

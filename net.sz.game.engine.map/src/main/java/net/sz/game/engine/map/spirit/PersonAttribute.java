@@ -3,7 +3,8 @@ package net.sz.game.engine.map.spirit;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sz.game.engine.utils.RandomUtils;
 import net.sz.game.engine.utils.StringUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 属性
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class PersonAttribute extends ConcurrentHashMap<PersonAttribute.AttKey, Integer> {
 
-    private static final Logger log = Logger.getLogger(PersonAttribute.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final long serialVersionUID = -3258690074056212218L;
     private Long expMax = 0l;

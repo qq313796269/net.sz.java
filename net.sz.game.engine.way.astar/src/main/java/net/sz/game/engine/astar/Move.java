@@ -6,7 +6,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 移动辅助
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class Move {
 
-    private static final Logger log = Logger.getLogger(Move.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final NumberFormat ddf1 = NumberFormat.getNumberInstance();
 
     /**

@@ -6,10 +6,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.sz.game.engine.db.Dao;
 import net.sz.game.engine.db.IDaoRun;
 import net.sz.game.engine.thread.ThreadPool;
-import net.sz.game.engine.thread.ThreadRunnable;
+import net.sz.game.engine.thread.SzThread;
 import net.sz.game.engine.thread.ThreadType;
-import net.sz.game.engine.thread.TimerTaskEvent;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.thread.TimerTaskModel;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -18,11 +19,11 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public class CUDThread extends ThreadRunnable {
+public class CUDThread extends SzThread {
 
-    private static final Logger log = Logger.getLogger(CUDThread.class);
+    private static SzLogger log = SzLogger.getLogger();
 
-    private static final ThreadGroup THREAD_GROUP = new ThreadGroup("DB THREAD　GROUP");
+    private static final ThreadGroup THREAD_GROUP = new ThreadGroup(ThreadPool.GlobalThreadGroup.getParent(), "DB-THREAD-GROUP");
 
     private DbObjects insertDbObjects;
     private DbObjects updateDbObjects;
@@ -115,7 +116,7 @@ public class CUDThread extends ThreadRunnable {
         deleteDbRuns.objs.add(run);
     }
 
-    final class DbTimerEvent extends TimerTaskEvent {
+    final class DbTimerEvent extends TimerTaskModel {
 
         public DbTimerEvent(int intervalTime) {
             super(intervalTime);
@@ -128,8 +129,10 @@ public class CUDThread extends ThreadRunnable {
                 if (!objects.isEmpty()) {
                     try {
                         int deleteList = CUDThread.this.dao.deleteList(objects);
-                        log.debug("删除数据影响行数：" + deleteList);
-                    } catch (Exception ex) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("删除数据影响行数：" + deleteList);
+                        }
+                    } catch (Throwable ex) {
                         log.error("异步写入数据库错误 删除对象", ex);
                     }
                 }
@@ -140,8 +143,10 @@ public class CUDThread extends ThreadRunnable {
                 if (!objects.isEmpty()) {
                     try {
                         int insertList = CUDThread.this.dao.insertList(2000, objects);
-                        log.debug("新增数据插入影响行数：" + insertList);
-                    } catch (Exception ex) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("新增数据插入影响行数：" + insertList);
+                        }
+                    } catch (Throwable ex) {
                         log.error("异步写入数据库错误 插入对象", ex);
                     }
                 }
@@ -152,8 +157,10 @@ public class CUDThread extends ThreadRunnable {
                 if (!objects.isEmpty()) {
                     try {
                         int updateList = CUDThread.this.dao.updateList(2000, objects);
-                        log.debug("更新数据插入影响行数：" + updateList);
-                    } catch (Exception ex) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("更新数据插入影响行数：" + updateList);
+                        }
+                    } catch (Throwable ex) {
                         log.error("异步写入数据库错误 更新对象", ex);
                     }
                 }
@@ -181,11 +188,9 @@ public class CUDThread extends ThreadRunnable {
                 IDaoRun peek = objs.poll();
                 if (peek != null) {
                     values.add(peek);
-                } else {
-                    if (objs.isEmpty()) {
-                        //已经没有数据了
-                        break;
-                    }
+                } else if (objs.isEmpty()) {
+                    //已经没有数据了
+                    break;
                 }
             }
             return values;
@@ -210,11 +215,9 @@ public class CUDThread extends ThreadRunnable {
                 Object peek = objs.poll();
                 if (peek != null) {
                     values.add(peek);
-                } else {
-                    if (objs.isEmpty()) {
-                        //已经没有数据了
-                        break;
-                    }
+                } else if (objs.isEmpty()) {
+                    //已经没有数据了
+                    break;
                 }
             }
             return values;

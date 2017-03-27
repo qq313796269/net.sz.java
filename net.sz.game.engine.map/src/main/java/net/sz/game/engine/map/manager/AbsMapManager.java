@@ -1,18 +1,23 @@
 package net.sz.game.engine.map.manager;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.sz.game.engine.util.NodeEnty2;
 import net.sz.game.engine.map.MapArea;
 import net.sz.game.engine.map.MapInfo;
 import net.sz.game.engine.map.MapObject;
+import net.sz.game.engine.map.spirit.Person;
 import net.sz.game.engine.map.thread.MapThread;
 import net.sz.game.engine.navmesh.Vector3;
-import net.sz.game.engine.thread.TaskEvent;
+import net.sz.game.engine.thread.TaskModel;
 import net.sz.game.engine.thread.ThreadPool;
-import net.sz.game.engine.thread.TimerTaskEvent;
+import net.sz.game.engine.thread.TimerTaskModel;
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.utils.RandomUtils;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -23,32 +28,77 @@ import org.apache.log4j.Logger;
  */
 public class AbsMapManager {
 
-    private static final Logger log = Logger.getLogger(AbsMapManager.class);
+    private static SzLogger log = SzLogger.getLogger();
 
-    protected static final ConcurrentHashMap<String, MapInfo> mapInfos = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<String, MapInfo> MapInfo_Map = new ConcurrentHashMap<>();
     /**
      * 只会记录副本和战场
      */
-    protected static final ConcurrentHashMap<Long, MapInfo> mapInfo1s = new ConcurrentHashMap<>();
-    protected static final ConcurrentHashMap<String, MapThread> MAPTHREAD_MAP = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<Long, MapInfo> ZoneMapInfo_Map = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<Long, MapThread> MAPTHREAD_MAP = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         log.error(getMapSkey(0, 0, 0));
     }
 
-    public static ConcurrentHashMap<String, MapInfo> getMapInfos() {
-        return mapInfos;
+    /**
+     * 所有地图信息
+     *
+     * @return
+     */
+    public static ConcurrentHashMap<String, MapInfo> getMapInfo_Map() {
+        return MapInfo_Map;
     }
 
     /**
      * 只会记录副本和战场
+     *
+     * @return
      */
-    public static ConcurrentHashMap<Long, MapInfo> getMapInfo1s() {
-        return mapInfo1s;
+    public static ConcurrentHashMap<Long, MapInfo> getZoneMapInfo_Map() {
+        return ZoneMapInfo_Map;
     }
 
-    public static ConcurrentHashMap<String, MapThread> getMAPTHREAD_MAP() {
+    /**
+     * 所有线程
+     *
+     * @return
+     */
+    public static ConcurrentHashMap<Long, MapThread> getMAPTHREAD_MAP() {
         return MAPTHREAD_MAP;
+    }
+
+    /**
+     * 获取一个线程
+     *
+     * @return
+     */
+    public static MapThread getNextMAPTHREAD(int size) {
+        HashMap<Long, MapThread> tmpMap = new HashMap<>(MAPTHREAD_MAP);
+        MapThread mapThread = null;
+        for (Map.Entry<Long, MapThread> entry : tmpMap.entrySet()) {
+            if (entry.getValue().personSize() < size && (mapThread == null || mapThread.personSize() > entry.getValue().personSize())) {
+                mapThread = entry.getValue();
+            }
+//            if (value.getMapType().getValue2() == mapInfo.getMapType().getValue2()) {
+//                /**
+//                 * 设置共享线程，剧情动画副本，一个线程控制200个地图
+//                 */
+//                if (mapInfo.getMapType() == MapInfo.MapType.PLOTMAP) {
+//                    if (value.mapSize() < 200) {
+//                        return value;
+//                    }
+//                } else {
+//                    /**
+//                     * 如果副本或者战场，一个线程控制1000个对象
+//                     */
+//                    if (value.mapPersonSize() < 1000) {
+//                        return value;
+//                    }
+//                }
+//            }
+        }
+        return mapThread;
     }
 
     /**
@@ -60,7 +110,7 @@ public class AbsMapManager {
      * @return
      */
     public static String getMapSkey(long mapId, int mapModelId, int lineId) {
-        return String.format("%s_%s_%s", mapId, mapModelId, lineId);
+        return mapId + "_" + mapModelId + "_" + lineId;
     }
 
     /**
@@ -83,35 +133,42 @@ public class AbsMapManager {
         return AbsMapManager.getMapInfo(mapSkey);
     }
 
+    /**
+     *
+     * @param mapId
+     * @return
+     */
     public static MapInfo removeMap(long mapId) {
-        MapInfo get = mapInfo1s.get(mapId);
+        MapInfo get = ZoneMapInfo_Map.get(mapId);
         removeMap(get);
         return get;
     }
 
+    /**
+     *
+     * @param mapKey
+     * @return
+     */
     public static MapInfo removeMap(String mapKey) {
-        MapInfo get = mapInfos.get(mapKey);
+        MapInfo get = MapInfo_Map.get(mapKey);
         removeMap(get);
         return get;
     }
 
+    /**
+     * 销毁副本
+     *
+     * @param mapInfo
+     */
     public static void removeMap(MapInfo mapInfo) {
-        // 销毁副本
-        ConcurrentHashMap<Integer, NodeEnty2<Long, Object>> mapthreadMap = mapInfo.getMapthreadMap();
-        String mapSkey = getMapSkey(mapInfo);
-        for (Map.Entry<Integer, NodeEnty2<Long, Object>> entry : mapthreadMap.entrySet()) {
-            NodeEnty2<Long, Object> nodeEnty2 = entry.getValue();
-
-            Long tid = nodeEnty2.getKey();
-
-            AbsMapManager.getMAPTHREAD_MAP().get(mapSkey + tid);
-
-            ThreadPool.remove(tid);
-            log.error("removeZoneServer " + mapSkey + tid);
-        }
-        log.error("销毁 战场 或者 副本，当前地图线程总数量:" + AbsMapManager.getMAPTHREAD_MAP().size());
-        mapInfo1s.remove(mapInfo.getMapId());
-        mapInfos.remove(mapSkey);
+//        MapThread get = AbsMapManager.getMAPTHREAD_MAP().get(mapInfo.getMapThreadId());
+//        if (get.isMapEmpty()) {
+//            ThreadPool.remove(mapInfo.getMapThreadId());
+//            AbsMapManager.getMAPTHREAD_MAP().remove(mapInfo.getMapThreadId());
+//        }
+        log.error("销毁 战场 或者 副本，当前地图数量：" + AbsMapManager.getMapInfo_Map().size() + "，当前地图线程总数量：" + AbsMapManager.getMAPTHREAD_MAP().size());
+        ZoneMapInfo_Map.remove(mapInfo.getMapId());
+        MapInfo_Map.remove(mapInfo.getMapKey());
     }
 
     /**
@@ -125,11 +182,16 @@ public class AbsMapManager {
         if (mapId == 0) {
             return null;
         }
-        return mapInfo1s.get(mapId);
+        return ZoneMapInfo_Map.get(mapId);
     }
 
+    /**
+     *
+     * @param mapSkey
+     * @return
+     */
     public static MapInfo getMapInfo(String mapSkey) {
-        return mapInfos.get(mapSkey);
+        return MapInfo_Map.get(mapSkey);
     }
 
     /**
@@ -177,7 +239,7 @@ public class AbsMapManager {
         /* 当前坐标点的所在的格子的信息 */
         int a1 = MoveUtil.seat(x, mapInfo.getArea_width());
         int a2 = MoveUtil.seat(z, mapInfo.getArea_height());
-        return a1 * 1000 + a2;
+        return getAreaId(a1, a2);
     }
 
     /**
@@ -193,7 +255,7 @@ public class AbsMapManager {
 
     public static MapArea getArea(long mapId, int mapModelId, int lineId, int areaId) {
         String mapSkey = getMapSkey(mapId, mapModelId, lineId);
-        MapInfo mapInfo = mapInfos.get(mapSkey);
+        MapInfo mapInfo = MapInfo_Map.get(mapSkey);
         if (mapInfo != null) {
             return mapInfo.getArea(areaId);
         }
@@ -211,7 +273,7 @@ public class AbsMapManager {
      */
     public static MapArea getAreaOrIn(long mapId, int mapModelId, int lineId, int areaId) {
         String mapSkey = getMapSkey(mapId, mapModelId, lineId);
-        MapInfo mapInfo = mapInfos.get(mapSkey);
+        MapInfo mapInfo = MapInfo_Map.get(mapSkey);
         MapArea mapArea = null;
         if (mapInfo != null) {
             mapArea = mapInfo.getAreaOrIn(areaId);
@@ -219,17 +281,109 @@ public class AbsMapManager {
         return mapArea;
     }
 
-    public static void addTask(MapObject mapObject, TaskEvent taskModel) {
-        MapInfo map = AbsMapManager.getMapInfo(mapObject);
-        map.addTask(taskModel);
-//        ThreadPool.addTask(mapObject.getMapThread(), taskModel);
-
+    public static void addAllThreadTask(TaskModel taskModel) {
+        /*全局地图线程和副本线程*/
+        MapThread[] mapThreads = AbsMapManager.getMAPTHREAD_MAP().values().toArray(new MapThread[0]);
+        for (int i = 0; i < mapThreads.length; i++) {
+            MapThread mapThread = mapThreads[i];
+            mapThread.addTask(taskModel);
+        }
     }
 
-    public static void addTimerTask(MapObject mapObject, TimerTaskEvent timerEvent) {
+    public static void addAllThreadTimerTask(TimerTaskModel timerTask) {
+        /*全局地图线程和副本线程*/
+        MapThread[] mapThreads = AbsMapManager.getMAPTHREAD_MAP().values().toArray(new MapThread[0]);
+        for (int i = 0; i < mapThreads.length; i++) {
+            MapThread mapThread = mapThreads[i];
+            mapThread.addTimerTask(timerTask);
+        }
+    }
+
+    /**
+     * 添加对象所属线程
+     *
+     * @param person
+     * @param taskModel
+     */
+    public static void addTask(Person person, TaskModel taskModel) {
+        MapThread mapThread = AbsMapManager.getMAPTHREAD_MAP().get(person.getMapThreadId());
+        mapThread.addTask(taskModel);
+    }
+
+    /**
+     * 添加对象所属线程
+     *
+     * @param person
+     * @param timerEvent
+     */
+    public static void addTimerTask(Person person, TimerTaskModel timerEvent) {
+        MapThread mapThread = AbsMapManager.getMAPTHREAD_MAP().get(person.getMapThreadId());
+        mapThread.addTimerTask(timerEvent);
+    }
+
+    /**
+     * 添加到地图里面
+     *
+     * @param mapObject
+     * @param timerEvent
+     */
+    public static void addMapTimerTask(MapObject mapObject, TimerTaskModel timerEvent) {
         MapInfo map = AbsMapManager.getMapInfo(mapObject);
         map.addTimerTask(timerEvent);
-//        ThreadPool.addTimerTask(mapObject.getMapThread(), timerEvent);
+    }
+
+    /**
+     * 获取指定范围不是阻挡点的格子列表(根据传入数量取)
+     *
+     * @param mapInfo
+     * @param center 中心点
+     * @param radius 半径
+     * @param num 数量
+     * @return
+     */
+    public static ArrayList<Vector3> getRoundPosition(MapInfo mapInfo, Vector3 center, int radius, int num) {
+        return getRoundPosition(mapInfo, center.getX(), center.getZ(), radius, num);
+    }
+
+    public static ArrayList<Vector3> getRoundPosition(MapInfo mapInfo, double px, double pz, int radius, int num) {
+        ArrayList<Vector3> vector3s = new ArrayList<>();
+        for (int i = 0; i < num; i++) {
+            Vector3 position = AbsMapManager.getRoundPosition(mapInfo, px, pz, radius);
+            if (position != null) {
+                vector3s.add(position);
+            }
+        }
+        return vector3s;
+    }
+
+    public static Vector3 getRoundPosition(MapInfo mapInfo, Vector3 center, double r) {
+        return getRoundPosition(mapInfo, center.getX(), center.getZ(), r);
+    }
+
+    /**
+     * 返回给定点的周围4米随机坐标点
+     *
+     * @param mapInfo
+     * @param px
+     * @param pz
+     * @param r
+     * @return
+     */
+    public static Vector3 getRoundPosition(MapInfo mapInfo, double px, double pz, double r) {
+//        return map.getNavMap().getRandomPointInPaths(px, py, r, 0);
+        double cx;
+        double cz;
+        for (int i = 0; i < 10; i++) {
+            cx = RandomUtils.randomDoubleValue(px - r, px + r);
+            /*如果玩家在阻挡外  跳到复活点*/
+            cz = RandomUtils.randomDoubleValue(pz - r, pz + r);
+            if (!mapInfo.getNavMap().isBlock(cx, cz) && mapInfo.getNavMap().isPointInPaths(cx, cz)) {
+                return new Vector3(cx, cz);
+            }
+        }
+        String exce = "随机10次都是阻挡 px=" + px + " ,pz=" + pz;
+        log.error(exce, new UnsupportedOperationException(exce));
+        return null;
     }
 
 }

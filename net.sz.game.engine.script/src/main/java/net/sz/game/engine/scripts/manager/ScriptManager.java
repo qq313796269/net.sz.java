@@ -3,7 +3,8 @@ package net.sz.game.engine.scripts.manager;
 import net.sz.game.engine.scripts.ScriptPool;
 import java.io.File;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 脚本管理器
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class ScriptManager {
 
-    private static final Logger log = Logger.getLogger(ScriptManager.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final ScriptManager instance = new ScriptManager();
     private static final ScriptPool SManager;	//基础脚本类
@@ -46,7 +47,9 @@ public class ScriptManager {
      * @return
      */
     public ArrayList<String> reload() {
-        return SManager.loadJava();
+        synchronized (SManager) {
+            return SManager.loadJava();
+        }
     }
 
     /**
@@ -56,7 +59,9 @@ public class ScriptManager {
      * @return
      */
     public ArrayList<String> loadJava(String... source) {
-        return SManager.loadJava(source);
+        synchronized (SManager) {
+            return SManager.loadJava(source);
+        }
     }
 
     /**
@@ -69,7 +74,9 @@ public class ScriptManager {
         String[] split = replace.split("=");
         String p = split[split.length - 1];
         p = p.replace(".", File.separator);
-        return SManager.loadJava(p + File.separator + "scripts");
+        synchronized (SManager) {
+            return SManager.loadJava(p + File.separator + "scripts");
+        }
     }
 
     /**
@@ -82,7 +89,9 @@ public class ScriptManager {
         String[] split = replace.split("=");
         String p = split[split.length - 1];
         p = p.replace(".", File.separator);
-        return SManager.loadJava(p + File.separator + "proto");
+        synchronized (SManager) {
+            return SManager.loadJava(p + File.separator + "proto");
+        }
     }
 
     public static void main(String[] args) {

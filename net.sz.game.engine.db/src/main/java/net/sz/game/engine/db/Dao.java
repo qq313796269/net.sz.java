@@ -25,7 +25,8 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import net.sz.game.engine.utils.StringUtil;
 import net.sz.game.engine.utils.ZipUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -36,7 +37,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class Dao {
 
-    private static final Logger log = Logger.getLogger(Dao.class);
+    private static SzLogger log = SzLogger.getLogger();
     /**
      * 存储所有类型解析
      */
@@ -221,9 +222,8 @@ public abstract class Dao {
     /**
      * 关闭数据库连接
      *
-     * @throws java.lang.Exception
      */
-    public abstract void close() throws Exception;
+    public abstract void close();
 
     //<editor-fold defaultstate="collapsed" desc="获取表名 protected String getTableName(Object o)">
     /**
@@ -910,7 +910,7 @@ public abstract class Dao {
             con.setAutoCommit(false);
             insert = insert(con, constCount, os);
             con.commit();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             if (con != null) {
                 con.rollback();
             }
@@ -1067,7 +1067,7 @@ public abstract class Dao {
                     log.error("执行 " + prepareCall.toString() + " 添加数据 表：" + tableName + " 结果 影响行数：" + tmpExecCount);
                 }
                 execute += tmpExecCount;
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + inserts);
                 throw ex;
             }
@@ -1147,13 +1147,43 @@ public abstract class Dao {
     }
     //</editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="字段信息">
+    /**
+     *
+     * @param <T>
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
     public <T> int getCount(Class<T> clazz) throws Exception {
         /*获取表名*/
         String tableName = getTableName(clazz);
         String sqlString = "select count(1) usm from `" + tableName + "`";
         return this.getResult(sqlString, "usm", int.class);
     }
+    // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="字段信息">
+    /**
+     *
+     * @param <T>
+     * @param clazz
+     * @param whereSqlString
+     * @return
+     * @throws Exception
+     */
+    public <T> int getCount(Class<T> clazz, String whereSqlString) throws Exception {
+        /*获取表名*/
+        String tableName = getTableName(clazz);
+        String sqlString = "select count(1) usm from `" + tableName + "`";
+        if (!StringUtil.isNullOrEmpty(whereSqlString)) {
+            sqlString += " " + whereSqlString;
+        }
+        return this.getResult(sqlString, "usm", int.class);
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="字段信息">
     /**
      *
      * @param <T>
@@ -1191,6 +1221,7 @@ public abstract class Dao {
         }
         return obj;
     }
+    // </editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="根据传入的sql语句获取对象 public <T> List<T> getListBySql(Class<T> clazz, String sqlString, Object... strs)">
     /**
@@ -1247,6 +1278,16 @@ public abstract class Dao {
     }
     //</editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="查询语句封装 protected String getSelectSql(String tableName, List<SqlColumn> columns, String sqlWhere) throws Exception">
+    /**
+     * 查询语句封装
+     *
+     * @param tableName
+     * @param columns
+     * @param sqlWhere
+     * @return
+     * @throws Exception
+     */
     protected String getSelectSql(String tableName, List<SqlColumn> columns, String sqlWhere) throws Exception {
         //这里如果不存在字段名就不需要创建了
         if (columns == null || columns.isEmpty()) {
@@ -1275,6 +1316,7 @@ public abstract class Dao {
         }
         return builder.toString();
     }
+    // </editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="返回查询结果集 public List<Map<String, Object>> getResultSet(Connection con, Class<?> clazz, String whereSqlString, Object... strs)">
     /**
@@ -1391,7 +1433,7 @@ public abstract class Dao {
             if (showSql) {
                 log.error("执行影响行数：" + res.size());
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("执行sql语句错误：" + sqlString);
             throw ex;
         }
@@ -1448,7 +1490,7 @@ public abstract class Dao {
                 Object object1 = executeQuery.getObject(valueName);
                 object = (T) getResultValue(object1, "", "", clazz);
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("执行sql语句错误：" + sqlString);
             throw ex;
         }
@@ -1484,7 +1526,7 @@ public abstract class Dao {
                 while (executeQuery.next()) {
                     objects.add((T) executeQuery.getObject(valueName));
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 log.error("执行sql语句错误：" + sqlString);
                 throw ex;
             }
@@ -1805,7 +1847,7 @@ public abstract class Dao {
                     obj = ZipUtil.unZipObject(bytes);
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("加载表：" + tableName + " 字段：" + columnName + " 字段类型：" + toLowerCase + " 数据库配置值：" + obj, e);
         }
         return obj;
@@ -1860,7 +1902,7 @@ public abstract class Dao {
             con.setAutoCommit(false);
             update = update(con, constCount, objs);
             con.commit();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             if (con != null) {
                 con.rollback();
             }
@@ -1874,9 +1916,19 @@ public abstract class Dao {
     }
     //</editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="更新数据 public int update(Connection con, Object... objs) throws Exception">
+    /**
+     * 更新数据
+     *
+     * @param con
+     * @param objs
+     * @return
+     * @throws Exception
+     */
     public int update(Connection con, Object... objs) throws Exception {
         return update(con, 1, objs);
     }
+    // </editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="更新数据 public boolean update(Object obj)">
     /**
@@ -1940,8 +1992,6 @@ public abstract class Dao {
                             } else {
                                 builder.append(" and ");
                             }
-//                            Object invoke = column.getGetMethod().invoke(obj);
-//                            NodeEnty<Object, SqlColumn> value = new NodeEnty<>(invoke, column);
                             sqlcloumns.add(column);
 
                             /* 不是主键 */
@@ -1992,7 +2042,7 @@ public abstract class Dao {
                         log.error("\n" + prepareStatement.toString() + " 执行结果：" + tmpExecCount);
                     }
                     executeUpdate += tmpExecCount;
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     log.error("执行sql语句错误：" + updateSql);
                     throw ex;
                 }
@@ -2042,7 +2092,7 @@ public abstract class Dao {
                 log.error("执行结果：" + executeUpdate);
             }
             return executeUpdate;
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("执行sql语句错误：" + sql);
             throw ex;
         }
@@ -2146,7 +2196,7 @@ public abstract class Dao {
             con.setAutoCommit(false);
             del = delete(con, objs);
             con.commit();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             if (con != null) {
                 con.rollback();
             }
@@ -2271,9 +2321,16 @@ public abstract class Dao {
     }
     //</editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="创建数据库 public int createDatabase() throws Exception">
+    /**
+     * 创建数据库
+     *
+     * @return @throws Exception
+     */
     public int createDatabase() throws Exception {
         return createDatabase(this.dbName);
     }
+    // </editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="创建数据库 public int createDatabase(String database)">
     /**

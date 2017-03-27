@@ -2,7 +2,8 @@ package net.sz.game.engine.astar;
 
 import net.sz.game.engine.utils.MoveUtil;
 import net.sz.game.engine.utils.XmlUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 地图阻挡，u3d的阻挡是左下角开始，右上角结束，
@@ -19,10 +20,12 @@ public class MapBlock implements Cloneable {
         String string = "C:\\Users\\troy_worker\\Desktop\\311.block.xml";
         MapBlockConfig mapBlockConfig = XmlUtil.readerSimpleXmlToFile(string, MapBlockConfig.class);
         MapBlock buildMapBlock = mapBlockConfig.buildMapBlock();
-        log.debug(buildMapBlock.getMapid());
+        if (log.isDebugEnabled()) {
+            log.debug(buildMapBlock.getMapid());
+        }
     }
 
-    private static final Logger log = Logger.getLogger(MapBlock.class);
+    private static SzLogger log = SzLogger.getLogger();
     //地图模版
     private int mapid;
     //宽度

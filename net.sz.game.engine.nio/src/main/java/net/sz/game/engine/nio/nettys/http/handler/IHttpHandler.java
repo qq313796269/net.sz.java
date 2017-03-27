@@ -14,8 +14,9 @@ public interface IHttpHandler {
 
     /**
      *
-     * @param requestMessage 内容
+     * @param url
+     * @param request 内容
      */
-    void run(NioHttpRequest requestMessage);
+    void run(String url, NioHttpRequest request);
 
 }

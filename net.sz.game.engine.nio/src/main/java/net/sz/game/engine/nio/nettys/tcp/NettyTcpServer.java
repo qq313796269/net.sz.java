@@ -14,7 +14,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import java.util.List;
 import net.sz.game.engine.nio.nettys.NettyPool;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 基于 netty 4.0.21 的 netty 服务
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class NettyTcpServer {
 
-    private static final Logger log = Logger.getLogger(NettyTcpServer.class);
+    private static SzLogger log = SzLogger.getLogger();
     private int port = 9527;
     private String hostname = "0.0.0.0";
     ChannelFuture sync = null;
@@ -56,7 +57,9 @@ public class NettyTcpServer {
          */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            log.debug("内部错误", cause);
+            if (log.isDebugEnabled()) {
+                log.debug("内部错误", cause);
+            }
 //                                            if ("java.lang.IllegalArgumentException".equals(cause.getClass().getName()))
             {
                 NettyPool.getInstance().closeSession(ctx, "服务器异常剔除下线：" + cause.getClass().getName());
@@ -75,7 +78,9 @@ public class NettyTcpServer {
         @Override
         public void channelUnregistered(ChannelHandlerContext ctx) {
             String asLongText = ctx.channel().id().asLongText();
-            log.debug("连接断开：" + asLongText);
+            if (log.isDebugEnabled()) {
+                log.debug("连接断开：" + asLongText);
+            }
             NettyPool.getInstance().getSessions().remove(asLongText);
             NettyTcpServer.this.nettyHandler.closeSession(asLongText, ctx);
         }
@@ -83,7 +88,9 @@ public class NettyTcpServer {
         @Override
         public void channelInactive(ChannelHandlerContext ctx) throws Exception {
             String asLongText = ctx.channel().id().asLongText();
-            log.debug("连接闲置：" + ctx.channel().id().asLongText());
+            if (log.isDebugEnabled()) {
+                log.debug("连接闲置：" + ctx.channel().id().asLongText());
+            }
             NettyTcpServer.this.nettyHandler.channelInactive(asLongText, ctx);
         }
 
@@ -99,7 +106,9 @@ public class NettyTcpServer {
                 NettyPool.getInstance().closeSession(ctx, "服务器尚未启动");
             } else {
                 String asLongText = ctx.channel().id().asLongText();
-                log.debug("新建：" + asLongText);
+                if (log.isDebugEnabled()) {
+                    log.debug("新建：" + asLongText);
+                }
                 NettyCoder.setSessionAttr(ctx, NettyCoder.SessionCreateTime, System.currentTimeMillis());
                 NettyCoder.setSessionAttr(ctx, NettyCoder.SessionLastTime, System.currentTimeMillis());
                 //NettyPool.getInstance().setSessionAttr(ctx, NettyPool.SessionLoginTime, System.currentTimeMillis());
@@ -167,7 +176,9 @@ public class NettyTcpServer {
                     .childOption(ChannelOption.SO_KEEPALIVE, true) /**/;
             // Bind and start to accept incoming connections
             sync = bs.bind(hostname, this.port).awaitUninterruptibly();
-            log.info("开启Tcp服务端口 " + hostname + ":" + this.port + " 监听");
+            if (log.isInfoEnabled()) {
+                log.info("开启Tcp服务端口 " + hostname + ":" + this.port + " 监听");
+            }
         } catch (Exception ex) {
             log.error("开启Tcp服务端口 " + hostname + ":" + this.port + " 监听 失败", ex);
             System.exit(0);

@@ -27,7 +27,7 @@ public class ViewPane extends JComponent {
 
     protected Image backImage;
     protected Graphics2D backImageGraphics2D;
-    protected final Player player;
+    protected final MovePlayer player;
 
     Vector3 center = new Vector3(220, 0, 220);
     Vector3 test = new Vector3(250, 0, 250);
@@ -37,7 +37,7 @@ public class ViewPane extends JComponent {
     KPolygon poly;
     protected boolean isRenderRandomPoints;
 
-    public ViewPane(Player player) {
+    public ViewPane(MovePlayer player) {
         this.player = player;
         direction = center.unityTranslate(Vector3.ZERO, 45, 60);
         direction.y = 45;
@@ -144,7 +144,7 @@ public class ViewPane extends JComponent {
     /**
      * @return the player
      */
-    public Player getPlayer() {
+    public MovePlayer getPlayer() {
         return player;
     }
 

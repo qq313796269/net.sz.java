@@ -2,7 +2,8 @@ package net.sz.game.engine.astar;
 
 import java.io.Serializable;
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 程序使用的坐标位置表示
@@ -13,7 +14,7 @@ import org.apache.log4j.Logger;
  */
 public class Position implements Serializable {
 
-    private static final Logger log = Logger.getLogger(Position.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final long serialVersionUID = -3638649152105184342L;
 
     //我们程序的阻挡和客户端阻挡是上下翻转的，所有发送同步朝向给客户端的时候也是上下翻转

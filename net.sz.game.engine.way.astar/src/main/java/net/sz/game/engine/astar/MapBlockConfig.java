@@ -71,13 +71,14 @@ public class MapBlockConfig {
         int rzlen = this.walkSetting.rzlen;
         int rxlen = this.walkSetting.rxlen;
 
-        MapBlock mapBlock = new MapBlock(mapID, rxlen, rzlen);
-        int[][] mapblock = mapBlock.getMapBlock();
-
         String blockinfo = walkSetting.getBlockinfo();
         if (blockinfo.length() != rxlen * rzlen) {
             throw new Exception("地图:" + mapID + "rxlen:" + rxlen + "rzlen:" + rzlen + "需要" + rxlen * rzlen + "个阻挡点,但实际配置的阻挡点共:" + blockinfo.length());
         }
+
+        MapBlock mapBlock = new MapBlock(mapID, rxlen, rzlen);
+
+        int[][] mapblock = mapBlock.getMapBlock();
 
         for (int i = 0; i < rzlen; i++) {
             for (int j = 0; j < rxlen; j++) {

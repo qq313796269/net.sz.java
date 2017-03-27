@@ -2,7 +2,8 @@ package net.sz.game.engine.nio.nettys.tcp;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -13,7 +14,7 @@ import org.apache.log4j.Logger;
  */
 public class TestClient {
 
-    static final Logger log = Logger.getLogger(TestClient.class);
+    private static SzLogger log = SzLogger.getLogger();
     static NettyTcpClient client = null;
 
     public static void main(String[] args) {

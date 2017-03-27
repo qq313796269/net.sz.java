@@ -7,7 +7,7 @@
 //import net.sz.game.engine.navmesh.Vector3;
 //import net.sz.game.engine.navmesh.path.NavMap;
 //import net.sz.game.engine.navmesh.path.PathData;
-//import org.apache.log4j.Logger;
+//
 //
 ///**
 // *
@@ -17,7 +17,7 @@
 // */
 //public abstract class AIContainer {
 //
-//    protected static final Logger LOGGER = Logger.getLogger(AIContainer.class);
+//    protected static Logger LOGGER = Logger.getLogger(AIContainer.class);
 //
 //    protected final Vector3 direction = new Vector3();
 //

@@ -12,8 +12,8 @@ import net.sz.game.engine.nio.nettys.tcp.INettyHandler;
 import net.sz.game.engine.nio.nettys.tcp.MessageHandler;
 import net.sz.game.engine.nio.nettys.tcp.NettyTcpHandler;
 import net.sz.game.engine.nio.nettys.tcp.NettyTcpServer;
+import net.sz.game.engine.szlog.SzLogger;
 import net.sz.game.engine.thread.ThreadPool;
-import org.apache.log4j.Logger;
 
 /**
  * netty 管理器
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  */
 public class NettyPool {
 
-    private static final Logger log = Logger.getLogger(NettyPool.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final NettyPool instance = new NettyPool();
 
@@ -66,8 +66,10 @@ public class NettyPool {
     public void closeSession(ChannelHandlerContext session, String... msgs) {
         if (session != null) {
             if (session.channel() != null) {
-                log.info("关闭连接：" + session.channel().id().asLongText() + " -> " + String.join(",", msgs));
-            } else {
+                if (log.isInfoEnabled()) {
+                    log.info("关闭连接：" + session.channel().id().asLongText() + " -> " + String.join(",", msgs));
+                }
+            } else if (log.isInfoEnabled()) {
                 log.info("关闭连接：-> " + String.join(",", msgs));
             }
             session.close();
@@ -76,9 +78,11 @@ public class NettyPool {
 
     public void closeSession(Channel session, String... msgs) {
         if (session != null) {
-            log.info("关闭连接：" + session.id().asLongText() + " -> " + String.join(",", msgs));
+            if (log.isInfoEnabled()) {
+                log.info("关闭连接：" + session.id().asLongText() + " -> " + String.join(",", msgs));
+            }
             session.close();
-        } else {
+        } else if (log.isInfoEnabled()) {
             log.info("关闭连接：-> " + String.join(",", msgs));
         }
     }
@@ -122,7 +126,8 @@ public class NettyPool {
         try {
             InetSocketAddress insocket = (InetSocketAddress) session.channel().remoteAddress();
             return insocket.getAddress().getHostAddress().toLowerCase();
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            log.error("获取IP地址失败：：：", e);
         }
         return "";
     }
@@ -137,7 +142,7 @@ public class NettyPool {
         try {
             InetSocketAddress insocket = (InetSocketAddress) session.remoteAddress();
             return insocket.getAddress().getHostAddress().toLowerCase();
-        } catch (Exception e) {
+        } catch (Throwable e) {
         }
         return "";
     }
@@ -155,7 +160,7 @@ public class NettyPool {
      * @param builder
      * @param msgQueue 用于分组
      */
-    public void register(int messageId, long threadId, Class<? extends NettyTcpHandler> handler, com.google.protobuf.Message.Builder builder, int msgQueue) {
+    public void register(int messageId, long threadId, NettyTcpHandler handler, com.google.protobuf.Message.Builder builder, int msgQueue) {
         MessageHandler msgold = handlerMap.get(messageId);
         MessageHandler messageHandler = new MessageHandler(messageId, threadId, handler, builder, msgQueue);
         /* TODO 验证线程模型 */
@@ -188,10 +193,8 @@ public class NettyPool {
             }
         }
         if (msgold != null) {
-            if (!msgold.getHandler().getName().equals(handler.getName())) {
-
+            if (!msgold.getHandler().getClass().getName().equals(handler.getClass().getName())) {
                 log.error("已注册消息：" + msgold + " 新注册的重复消息：" + messageHandler, new Exception());
-
                 if (ThreadPool.isStarEnd()) {
                     return;
                 } else {
@@ -201,64 +204,5 @@ public class NettyPool {
         }
         handlerMap.put(messageId, messageHandler);
         log.error("注册消息：" + messageHandler);
-
     }
-
-//    /**
-//     *
-//     * @param messageId
-//     * @param message
-//     * @param handler
-//     * @param threadId
-//     * @param builder
-//     * @param mapThreadQueue
-//     */
-//    public void register(int messageId,
-//            Class<? extends com.google.protobuf.Message> message,
-//            Class<? extends NettyTcpHandler> handler,
-//            long threadId, com.google.protobuf.Message.Builder builder,
-//            int mapThreadQueue) {
-//        if (message == null) {
-//            log.error("MessagePool.register 异常! messageClass 不能为null!" + messageId + " " + message + " " + handler + " " + threadId + " " + builder);
-//            if (ThreadPool.isStarEnd()) {
-//                return;
-//            } else {
-//                System.exit(1);
-//            }
-//        }
-//
-//        if (builder == null) {
-//            log.error("MessagePool.register 异常! builder 不能为null!" + messageId + " " + message + " " + handler + " " + threadId + " " + builder);
-//            if (ThreadPool.isStarEnd()) {
-//                return;
-//            } else {
-//                System.exit(1);
-//            }
-//        }
-//
-//        // TODO 验证线程模型
-//        if (threadId != 0 && ThreadPool.addThread(threadId) == null) {
-//            log.error("无法找到线程模型:" + threadId + "对应的处理器.请确保服务器启动时先初始化线程模型对象!");
-//            if (ThreadPool.isStarEnd()) {
-//                return;
-//            } else {
-//                System.exit(1);
-//            }
-//        }
-//
-//        MessageHandler messageHandler = handlerMap.get(messageId);
-//        // TODO 验证线程模型
-//        if (messageHandler != null) {
-//            log.error("添加已注册的重复消息");
-//            if (ThreadPool.isStarEnd()) {
-//                return;
-//            } else {
-//                System.exit(1);
-//            }
-//        }
-//
-//        messageHandler = new MessageHandler(threadId, messageId, handler, builder);
-//        handlerMap.put(messageId, messageHandler);
-//        log.error("注册消息：threadId：" + threadId + " messageId：" + messageId + " handler：" + handler + " message：" + message);
-//    }
 }

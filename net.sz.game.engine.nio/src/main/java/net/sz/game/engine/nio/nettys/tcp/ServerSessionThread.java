@@ -5,10 +5,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import net.sz.game.engine.thread.ThreadModel;
-import net.sz.game.engine.thread.ThreadRunnable;
+import net.sz.game.engine.thread.ThreadPool;
+import net.sz.game.engine.thread.SzThread;
 import net.sz.game.engine.thread.ThreadType;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -17,9 +18,9 @@ import org.apache.log4j.Logger;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public class ServerSessionThread extends ThreadRunnable {
+public class ServerSessionThread extends SzThread {
 
-    private static final Logger log = Logger.getLogger(ServerSessionThread.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) {
         ConcurrentLinkedQueue<ByteBuf> byteBufs1 = new ConcurrentLinkedQueue<>();
@@ -27,14 +28,14 @@ public class ServerSessionThread extends ThreadRunnable {
         log.error(poll);
     }
 
-    private static final ThreadGroup THREAD_GROUP = new ThreadGroup("Server Session Thread Group");
+    private static final ThreadGroup THREAD_GROUP = new ThreadGroup(ThreadPool.GlobalThreadGroup.getParent(), "Server-Session-Thread-Group");
 
     public final ConcurrentLinkedQueue<ByteBuf> byteBufs = new ConcurrentLinkedQueue<>();
 
     public final ArrayList<Channel> channels = new ArrayList<>();
 
     public ServerSessionThread(int threadcount) {
-        super(ThreadType.Sys, THREAD_GROUP, "Server Session Thread", threadcount);
+        super(ThreadType.Sys, THREAD_GROUP, "Server-Session-Thread", threadcount);
 
     }
 
@@ -206,25 +207,29 @@ public class ServerSessionThread extends ThreadRunnable {
     public void run() {
         ThreadModel currentThread = (ThreadModel) Thread.currentThread();
         while (runing) {
-            /* 阻塞等待 */
-            Channel channel = getChannel();
-            if (channel != null && channel.isOpen()) {
-                /* 之所以获取连接对象是因为保证能发送消息 阻塞等待 */
-                ByteBuf byteBuf = getByteBuf();
-                /* 取出任务执行 */
-                if (byteBuf != null && channel.isOpen()) {
-                    try {
-                        NettyCoder.send(channel, byteBuf);
-                    } catch (Exception e) {
-                        log.error("工人<“" + currentThread.getName() + "”> 发送消息 遇到错误", e);
+            try {
+                /* 阻塞等待 */
+                Channel channel = getChannel();
+                if (channel != null && channel.isOpen()) {
+                    /* 之所以获取连接对象是因为保证能发送消息 阻塞等待 */
+                    ByteBuf byteBuf = getByteBuf();
+                    /* 取出任务执行 */
+                    if (byteBuf != null && channel.isOpen()) {
+                        try {
+                            NettyCoder.send(channel, byteBuf);
+                        } catch (Throwable e) {
+                            log.error("工人<“" + currentThread.getName() + "”> 发送消息 遇到错误", e);
+                            addMessage(byteBuf);
+                        }
+                    } else {
+                        log.error("工人<“" + currentThread.getName() + "”> 发送消息 空值 byteBuf=" + (byteBuf == null));
                         addMessage(byteBuf);
                     }
                 } else {
-                    log.error("工人<“" + currentThread.getName() + "”> 发送消息 空值 byteBuf=" + (byteBuf == null));
-                    addMessage(byteBuf);
+                    log.error("工人<“" + currentThread.getName() + "”> 发送消息 空值 channel=" + (channel == null));
                 }
-            } else {
-                log.error("工人<“" + currentThread.getName() + "”> 发送消息 空值 channel=" + (channel == null));
+            } catch (Throwable e) {
+                log.error("工人<“" + currentThread.getName() + "”> 发送消息 遇到错误", e);
             }
         }
         log.error("线程结束, 工人<“" + currentThread.getName() + "”>退出");

@@ -15,13 +15,13 @@ public class MessageHandler {
     private long threadId;
     private int messageId;
     private int msgQueue;
-    private Class<? extends NettyTcpHandler> handler;
+    private NettyTcpHandler handler;
     private com.google.protobuf.Message.Builder message;
 
     public MessageHandler() {
     }
 
-    public MessageHandler(int messageId, long threadId, Class<? extends NettyTcpHandler> handler, com.google.protobuf.Message.Builder message, int msgQueue) {
+    public MessageHandler(int messageId, long threadId, NettyTcpHandler handler, com.google.protobuf.Message.Builder message, int msgQueue) {
         this.threadId = threadId;
         this.messageId = messageId;
         this.handler = handler;
@@ -53,11 +53,11 @@ public class MessageHandler {
         this.msgQueue = msgQueue;
     }
 
-    public Class<? extends NettyTcpHandler> getHandler() {
+    public NettyTcpHandler getHandler() {
         return handler;
     }
 
-    public void setHandler(Class<? extends NettyTcpHandler> handler) {
+    public void setHandler(NettyTcpHandler handler) {
         this.handler = handler;
     }
 

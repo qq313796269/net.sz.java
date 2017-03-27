@@ -1,7 +1,8 @@
 package net.sz.game.engine.map.spirit;
 
 import net.sz.game.engine.utils.BitUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class PersonPKState implements java.io.Serializable {
 
-    private static final Logger log = Logger.getLogger(PersonPKState.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private int state = Key.PKMODEL_PEACEMODE.getIndex();
 

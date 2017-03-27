@@ -1,7 +1,8 @@
 package net.sz.game.engine.astar;
 
 import net.sz.game.engine.utils.MoveUtil;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 寻路用的点位
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class Point {
 
-    private static final Logger log = Logger.getLogger(Point.class);
+    private static SzLogger log = SzLogger.getLogger();
     private int x;
     private int y;
     /// <summary>

@@ -1,6 +1,7 @@
 package net.sz.game.engine.thread;
 
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -11,8 +12,8 @@ import org.apache.log4j.Logger;
  */
 public abstract class NoticeThreadException {
 
-    private static final Logger log = Logger.getLogger(NoticeThreadException.class);
+    private static SzLogger log = SzLogger.getLogger();
 
-    abstract void noticeThreadException(Throwable e);
+    public abstract void noticeThreadException(Throwable e);
 
 }

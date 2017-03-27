@@ -2,7 +2,6 @@ package net.sz.game.engine.nio.nettys.tcp;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -19,10 +18,10 @@ import net.sz.game.engine.nio.nettys.tcp.IHandler.IAfterHandler;
 import net.sz.game.engine.nio.nettys.tcp.IHandler.IBeforeHandler;
 import net.sz.game.engine.nio.nettys.tcp.IHandler.INotFoundMessageHandler;
 import net.sz.game.engine.scripts.manager.ScriptManager;
+import net.sz.game.engine.szlog.SzLogger;
 import net.sz.game.engine.thread.ThreadPool;
 import net.sz.game.engine.utils.GlobalUtil;
 import net.sz.game.engine.utils.ObjectStreamUtil;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -33,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class NettyCoder {
 
-    private static final Logger log = Logger.getLogger(NettyCoder.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final String REVE_ZREO_BYTE_COUNT_STRING = "REVE_ZREO_BYTE_COUNT_STRING";
     private static final String REVE_BYTES_STRING = "REVE_BYTES_STRING";
@@ -58,7 +57,7 @@ public class NettyCoder {
             impl = new SqliteDaoImpl("", gamesr_dbname, "", "");
             impl.createTable(MessageAccount.class);
             cUDThread = new CUDThread(impl, "MessageAccount", 1);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("", e);
         }
     }
@@ -305,7 +304,9 @@ public class NettyCoder {
             if (System.currentTimeMillis() - secondTime > 1000L) {
                 setSessionAttr(chc, SEND_SECOND_TIME_STRING, System.currentTimeMillis());
                 maxByteCount += byteCount / 1024d;
-                log.debug("每一秒钟 发送 包量：" + reveCount + " 数据量：" + (byteCount) + " B 当前在线总字节量：" + maxByteCount + " KB");
+                if (log.isDebugEnabled()) {
+                    log.debug("每一秒钟 发送 包量：" + reveCount + " 数据量：" + (byteCount) + " B 当前在线总字节量：" + maxByteCount + " KB");
+                }
                 reveCount = 0;
                 byteCount = 0;
             }
@@ -396,9 +397,15 @@ public class NettyCoder {
         } else {
             buffercontent.writeInt(buf.length + 4).writeInt(msgid).writeBytes(buf);
         }
-        log.debug("发送消息ID：" + msgid + " 长度：" + buffercontent.writerIndex());
+        if (log.isDebugEnabled()) {
+//            if (115206 == msgid) {
+//                log.debug("发送消息ID：" + msgid + " 长度：" + buffercontent.writerIndex(), new Exception());
+//            } else {
+            log.debug("发送消息ID：" + msgid + " 长度：" + buffercontent.writerIndex());
+//            }
+        }
 
-        cUDThread.insert_Sync(new MessageAccount(msgid, buffercontent.writerIndex()));
+        cUDThread.insert_Sync(new MessageAccount(msgid, buffercontent.writerIndex(), System.currentTimeMillis()));
 
         return buffercontent;
     }
@@ -527,7 +534,9 @@ public class NettyCoder {
                 } else {
                     NettyCoder.setSessionAttr(chc, REVE_SECOND_TIME_STRING, System.currentTimeMillis());
                     maxByteCount += byteCount / 1024d;
-                    log.debug("每一秒钟 接收 包量：" + reveCount + " 数据量：" + (byteCount) + " B 当前在线总字节量：" + maxByteCount + " KB");
+                    if (log.isDebugEnabled()) {
+                        log.debug("每一秒钟 接收 包量：" + reveCount + " 数据量：" + (byteCount) + " B 当前在线总字节量：" + maxByteCount + " KB");
+                    }
                     reveCount = 0;
                     byteCount = 0;
                 }
@@ -535,10 +544,14 @@ public class NettyCoder {
                 NettyCoder.setSessionAttr(chc, REVE_BYTE_COUNT_STRING, byteCount);
                 NettyCoder.setSessionAttr(chc, REVE_MAX_BYTE_COUNT_STRING, maxByteCount);
                 if (reveCount > (ReveCount * 0.75)) {
-                    log.debug("发送消息过于频繁----" + reveCount);
+                    if (log.isDebugEnabled()) {
+                        log.debug("发送消息过于频繁----" + reveCount);
+                    }
                 }
                 if (reveCount > ReveCount) {
-                    log.debug("发送消息过于频繁----" + reveCount);
+                    if (log.isDebugEnabled()) {
+                        log.debug("发送消息过于频繁----" + reveCount);
+                    }
                     NettyPool.getInstance().closeSession(chc, "发送消息过于频繁----" + reveCount);
                 } else {
                     outputMessage.addAll(megsList);
@@ -547,8 +560,10 @@ public class NettyCoder {
         } else {
             ZreoByteCount++;
             if (ZreoByteCount >= 3) {
-                //todo 空包处理 考虑连续三次空包，断开链接
-                log.debug("decode 空包处理 连续三次空包");
+                if (log.isDebugEnabled()) {
+                    //todo 空包处理 考虑连续三次空包，断开链接
+                    log.debug("decode 空包处理 连续三次空包");
+                }
                 NettyPool.getInstance().closeSession(chc, "decode 空包处理 连续三次空包");
             }
         }
@@ -565,7 +580,7 @@ public class NettyCoder {
                 array = new byte[capacity];
                 asReadOnlyByteBuffer.get(array);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("反序列化错误", e);
         }
         return array;
@@ -576,7 +591,7 @@ public class NettyCoder {
         if (array != null) {
             try {
                 return ObjectStreamUtil.toObject(clazz, array);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("反序列化错误", e);
             }
         }
@@ -628,20 +643,22 @@ public class NettyCoder {
                 if (fd != null) {
                     Long syncId = (Long) message.getField(fd);
                     if (syncId != null) {
-                        log.debug("收到同步消息{" + syncId + "}");
+                        if (log.isDebugEnabled()) {
+                            log.debug("收到同步消息{" + syncId + "}");
+                        }
                         SyncRequestResponse<Message> response = new SyncRequestResponse<>();
                         response.setSyncId(syncId);
                         response.setResponse(message);
                         SyncRequestFuture.received(response);
                     }
                 } else {
-                    NettyTcpHandler newInstance = (NettyTcpHandler) _msghandler.getHandler().newInstance();
+                    NettyTcpHandler newInstance = (NettyTcpHandler) _msghandler.getHandler().clone();
                     // 设置网络Session对应的Player
                     newInstance.setSession(ctx);
                     newInstance.setMessage(message);
                     return newInstance;
                 }
-            } catch (InstantiationException | IllegalAccessException | InvalidProtocolBufferException e) {
+            } catch (Throwable e) {
                 log.error("工人<“" + Thread.currentThread().getName() + "”> 执行任务<" + msgId + "(“" + _msghandler.getMessage().getClass().getName() + "”)> 遇到错误: ", e);
             }
         }
@@ -658,7 +675,9 @@ public class NettyCoder {
      */
     @Deprecated
     static public void actionMessage(ChannelHandlerContext ctx, int msgId, byte[] bytebuf, Object... objs) {
-        log.debug("收到消息：" + msgId + " 消息长度：" + bytebuf.length);
+        if (log.isDebugEnabled()) {
+            log.debug("收到消息：" + msgId + " 消息长度：" + bytebuf.length);
+        }
 
         ArrayList<IBeforeHandler> evts = ScriptManager.getInstance().getBaseScriptEntry().getEvts(IBeforeHandler.class);
 

@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
@@ -21,7 +20,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 脚本加载器
@@ -33,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public final class ScriptPool {
 
-    private static final Logger log = Logger.getLogger(ScriptPool.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public ScriptPool() {
     }
@@ -102,11 +101,7 @@ public final class ScriptPool {
      * @return
      */
     public <T> ArrayList<T> getEvts(Class<T> t) {
-        ConcurrentHashMap<String, IBaseScript> scripts = ScriptPool.this.scriptInstances.get(t.getName());
-        if (scripts != null) {
-            return (ArrayList<T>) (new ArrayList<>(scripts.values()));
-        }
-        return new ArrayList<>();
+        return (ArrayList<T>) getEvts(t.getName());
     }
 
     /**
@@ -117,7 +112,11 @@ public final class ScriptPool {
      * @return
      */
     public <T> Iterator<T> getIterator(Class<T> t) {
-        return new MyIterator<T>(t.getName());
+        return new MyIterator<>(t.getName());
+    }
+
+    public void deleteDirectory() {
+        MyFileMonitor.deleteDirectory(this.outDir);
     }
 
     //<editor-fold desc="public final void Compile()">
@@ -128,14 +127,9 @@ public final class ScriptPool {
      */
     ArrayList<String> compile() {
         deleteDirectory();
-
         return this.compile("");
     }
     //</editor-fold>
-
-    public void deleteDirectory() {
-        MyFileMonitor.deleteDirectory(this.outDir);
-    }
 
     //<editor-fold desc="public final void Compile(String... fileNames)">
     /**
@@ -169,7 +163,9 @@ public final class ScriptPool {
 //                    String replaceAll = file.getPath().substring(sourceDir.length() - 1);
 //                    log.info("找到脚本文件：" + replaceAll);
 //                }
-                log.info("找到脚本并且需要编译的文件共：" + sourceFileList.size());
+                if (log.isInfoEnabled()) {
+                    log.info("找到脚本并且需要编译的文件共：" + sourceFileList.size());
+                }
                 //创建输出目录，如果不存在的话
                 new java.io.File(this.outDir).mkdirs();
                 // 获取要编译的编译单元
@@ -211,13 +207,13 @@ public final class ScriptPool {
                         log.error("加载脚本错误：" + ((JavaFileObject) (oDiagnostic.getSource())).getName() + " line:" + oDiagnostic.getLineNumber());
                     }
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 strs.add(this.sourceDir + "错误：" + ex);
                 log.error("加载脚本错误：", ex);
             } finally {
                 try {
                     fileManager.close();
-                } catch (IOException ex) {
+                } catch (Throwable ex) {
                 }
             }
         } else {
@@ -268,7 +264,7 @@ public final class ScriptPool {
                 }
             } else {// 若file对象为文件
                 String replaceAll = sourceFile.getPath().substring(sourceDir.length() - 1);
-                log.info("找到脚本文件：" + replaceAll);
+                log.error("找到脚本文件：" + replaceAll);
                 sourceFileList.add(sourceFile);
             }
         }
@@ -282,23 +278,25 @@ public final class ScriptPool {
      * @return
      */
     public ArrayList<String> loadJava() {
-        ArrayList<String> compile = this.compile();
-        if (compile == null || compile.isEmpty()) {
-            List<File> sourceFileList = new ArrayList<>(0);
-            //得到filePath目录下的所有java源文件
-            getFiles(this.outDir, sourceFileList, ".class");
-            String[] fileNames = new String[sourceFileList.size()];
-            for (int i = 0; i < sourceFileList.size(); i++) {
-                fileNames[i] = sourceFileList.get(i).getPath();
+        synchronized (this) {
+            ArrayList<String> compile = this.compile();
+            if (compile == null || compile.isEmpty()) {
+                List<File> sourceFileList = new ArrayList<>(0);
+                //得到filePath目录下的所有java源文件
+                getFiles(this.outDir, sourceFileList, ".class");
+                String[] fileNames = new String[sourceFileList.size()];
+                for (int i = 0; i < sourceFileList.size(); i++) {
+                    fileNames[i] = sourceFileList.get(i).getPath();
+                }
+                tmpScriptInstances = new ConcurrentHashMap<>();
+                loadClass(compile, fileNames);
+                if (tmpScriptInstances.size() > 0) {
+                    scriptInstances.clear();
+                    scriptInstances = tmpScriptInstances;
+                }
             }
-            tmpScriptInstances = new ConcurrentHashMap<>();
-            loadClass(compile, fileNames);
-            if (tmpScriptInstances.size() > 0) {
-                scriptInstances.clear();
-                scriptInstances = tmpScriptInstances;
-            }
+            return compile;
         }
-        return compile;
     }
 
     /**
@@ -308,34 +306,36 @@ public final class ScriptPool {
      * @return
      */
     public ArrayList<String> loadJava(String... source) {
-        ArrayList<String> compile;
-        if (source == null || source.length <= 0) {
-            compile = this.compile();
-        } else {
-            compile = this.compile(source);
-        }
+        synchronized (this) {
+            ArrayList<String> compile;
+            if (source == null || source.length <= 0) {
+                compile = this.compile();
+            } else {
+                compile = this.compile(source);
+            }
 
-        if (compile == null || compile.isEmpty()) {
-            List<File> sourceFileList = new ArrayList<>(0);
-            //得到filePath目录下的所有java源文件
-            for (String string : source) {
-                getFiles(this.outDir + string, sourceFileList, ".class");
-            }
-            String[] fileNames = new String[sourceFileList.size()];
-            for (int i = 0; i < sourceFileList.size(); i++) {
-                fileNames[i] = sourceFileList.get(i).getPath();
-            }
-            tmpScriptInstances = new ConcurrentHashMap<>();
-            loadClass(compile, fileNames);
-            if (tmpScriptInstances.size() > 0) {
-                for (Map.Entry<String, ConcurrentHashMap<String, IBaseScript>> entry : tmpScriptInstances.entrySet()) {
-                    String key = entry.getKey();
-                    ConcurrentHashMap<String, IBaseScript> value = entry.getValue();
-                    scriptInstances.put(key, value);
+            if (compile == null || compile.isEmpty()) {
+                List<File> sourceFileList = new ArrayList<>(0);
+                //得到filePath目录下的所有java源文件
+                for (String string : source) {
+                    getFiles(this.outDir + string, sourceFileList, ".class");
+                }
+                String[] fileNames = new String[sourceFileList.size()];
+                for (int i = 0; i < sourceFileList.size(); i++) {
+                    fileNames[i] = sourceFileList.get(i).getPath();
+                }
+                tmpScriptInstances = new ConcurrentHashMap<>();
+                loadClass(compile, fileNames);
+                if (tmpScriptInstances.size() > 0) {
+                    for (Map.Entry<String, ConcurrentHashMap<String, IBaseScript>> entry : tmpScriptInstances.entrySet()) {
+                        String key = entry.getKey();
+                        ConcurrentHashMap<String, IBaseScript> value = entry.getValue();
+                        scriptInstances.put(key, value);
+                    }
                 }
             }
+            return compile;
         }
-        return compile;
     }
 
     /**
@@ -350,7 +350,8 @@ public final class ScriptPool {
                 String tmpName = name.replace(outDir, "").replace(".class", "").replace(File.separatorChar, '.');
                 loader.loadClass(tmpName);
             }
-        } catch (ClassNotFoundException e) {
+        } catch (Throwable e) {
+            compile.add("  " + e.toString());
         }
     }
     //</editor-fold>
@@ -410,7 +411,6 @@ public final class ScriptPool {
 
         @Override
         protected Class<?> findClass(String name) {
-            log.info("加载脚本目录名称：" + (name));
             byte[] classData = getClassData(name);
             Class<?> defineClass = null;
             if (classData != null) {
@@ -425,11 +425,8 @@ public final class ScriptPool {
                     if (IInitBaseScript.class.isAssignableFrom(defineClass) || IBaseScript.class.isAssignableFrom(defineClass)) {
                         //读取加载的类的接口情况，是否实现了最基本的借口，如果不是，表示加载的本身自主类
                         newInstance = defineClass.newInstance();
-                        if (newInstance instanceof IInitBaseScript) {
-                            ((IInitBaseScript) newInstance)._init();
-                        }
-                        String nameString = defineClass.getName() + ", ";
                         if (newInstance != null) {
+                            String nameString = defineClass.getName() + ", ";
                             Class<?>[] interfaces = defineClass.getInterfaces();
                             for (Class<?> aInterface : interfaces) {
                                 //判断实例是否继承 IBaseScript
@@ -441,12 +438,17 @@ public final class ScriptPool {
                                     tmpScriptInstances.get(aInterface.getName()).put(defineClass.getName(), (IBaseScript) newInstance);
                                 }
                             }
+                            log.error("成功加载脚本：" + nameString);
+                            if (newInstance instanceof IInitBaseScript) {
+                                ((IInitBaseScript) newInstance)._init();
+                            }
                         }
-                        log.info("成功加载脚本：" + nameString);
                     }
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     this.msgList.add(name + "  " + ex.toString());
-                    log.info("加载脚本发生错误", ex);
+                    if (log.isInfoEnabled()) {
+                        log.info("加载脚本发生错误", ex);
+                    }
                 }
             }
             return defineClass;
@@ -470,8 +472,8 @@ public final class ScriptPool {
                     this.msgList.add(" 自定义脚本文件不存在： " + path);
                     log.error("自定义脚本文件不存在：" + path);
                 }
-            } catch (IOException ex) {
-                ex.printStackTrace();
+            } catch (Throwable ex) {
+                log.error(className, ex);
                 this.msgList.add(className + "  " + ex.toString());
             }
             return null;

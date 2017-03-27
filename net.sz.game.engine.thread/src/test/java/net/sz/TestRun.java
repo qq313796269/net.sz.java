@@ -1,6 +1,7 @@
 package net.sz;
 
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -11,7 +12,7 @@ import org.apache.log4j.Logger;
  */
 public class TestRun {
 
-    private static final Logger log = Logger.getLogger(TestRun.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     static {
         if (true) {
