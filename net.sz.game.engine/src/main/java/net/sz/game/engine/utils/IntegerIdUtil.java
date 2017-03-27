@@ -2,11 +2,15 @@ package net.sz.game.engine.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import net.sz.game.engine.util.ConcurrentHashSet;
-import org.apache.log4j.Logger;
 
 /**
- * 每一个小时可以生成 10万个，0 ~ 99999，重复周期是一个月
+ * 每小时能产生 114749 个 id 100000 ~ 214748，
+ * <br>
+ * 不保证多程序重复情况
+ * <br>
+ * 重复周期是 一个月，
+ * <br>
+ * 重启程序重复周期是一小时
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
@@ -14,53 +18,43 @@ import org.apache.log4j.Logger;
  */
 public class IntegerIdUtil {
 
-    private static final Logger log = Logger.getLogger(IntegerIdUtil.class);
     private static final SimpleDateFormat formatter = new SimpleDateFormat("ddHH");
 
     public static void main(String[] args) throws Exception {
-        log.error(formatter.format(new Date()));
-
         IntegerIdUtil idsUtil = new IntegerIdUtil();
-
-        ConcurrentHashSet<Long> hashids = new ConcurrentHashSet<>();
-        System.in.read();
-        for (int i = 0; i < 6; i++) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    for (int j = 0; j < 1000; j++) {
-                        long id = idsUtil.getId();
-                        if (!hashids.add(id)) {
-                            System.out.println(Thread.currentThread().getId() + " 重复id：" + id + " for：" + j + " size：" + hashids.size());
-                        }
-                    }
-                }
-            });
-            System.err.println(thread.getId());
-            thread.start();
-        }
+        System.err.println(idsUtil.getId());
+        System.err.println(idsUtil.getId());
+        System.err.println(idsUtil.getId());
+        System.err.println(idsUtil.getId());
+        System.exit(0);
     }
 
     private String newformatter = "";
 
-    private int staticID = -1;
+    private int thisStaticID = 99999;
 
+    /**
+     * 每小时能产生 114749 个 id
+     *
+     * @return
+     */
     public int getId() {
         String tmpyear = formatter.format(new Date());
-        long tmpid = 0;
+        Integer tmpid = 0;
         synchronized (this) {
             if (!newformatter.equals(tmpyear)) {
-                staticID = -1;
+                thisStaticID = 99999;
                 newformatter = tmpyear;
             }
-            staticID += 1;
-            tmpid = staticID;
+            ++thisStaticID;
+            tmpid = thisStaticID;
         }
 
-        if (tmpid > 99999) {
-            throw new UnsupportedOperationException("超过每分钟创建量 99999");
+        if (214748 < tmpid) {
+            throw new UnsupportedOperationException("超过每分钟创建量 214748");
         }
+
         /*这一段相对而言，比较耗时*/
-        return Integer.parseInt(String.format("%s%05d", tmpyear, tmpid));
+        return Integer.parseInt(tmpid + tmpyear);
     }
 }

@@ -1,4 +1,4 @@
-package net.sz.test;
+package net.sz.game.engine.struct;
 
 import net.sz.game.engine.utils.BitUtil;
 
@@ -8,16 +8,6 @@ import net.sz.game.engine.utils.BitUtil;
  */
 public class PolygonCheck {
 
-    public static void main(String[] args) {
-        double px = 2.901;
-        double py = 3.001;
-        PolygonCheck polygonCheck = new PolygonCheck(4);
-        polygonCheck.add(2, 2);
-        polygonCheck.add(3, 3);
-        polygonCheck.add(3, 5);
-        polygonCheck.add(1, 4);
-        System.out.println(polygonCheck.isInPolygon(px, py));
-    }
 
     /*多边形的顶点*/
     double[] pointXs;
@@ -69,6 +59,7 @@ public class PolygonCheck {
      * @param z 要判断的点
      * @return
      */
+    @Deprecated
     public boolean isInPolygon(double x, double z) {
         boolean inside = false;
         double p1x = 0, p1z = 0, p2x = 0, p2z = 0;
@@ -98,5 +89,73 @@ public class PolygonCheck {
             }
         }
         return inside;
+    }
+
+    /**
+     * 验证点在多边形内
+     *
+     * @param x
+     * @param z
+     * @return
+     */
+    public boolean contains(double x, double z) {
+        /*我们可以把多边形可以看做是一条从某点出发的闭合路，可以观察到在内部的点永远都在路的同一边。
+        给定线段的两个点P0(x0,y0)和P1(x1,y1)，目标点P(x,y),它们有如下的关系：
+        计算(y - y0)* (x1 - x0) - (x - x0) * (y1 - y0)
+        如果答案小于0则说明P在线段的右边，大于0则在左边，等于0说明在线段上。
+         */
+        double p1x = 0, p1z = 0, p2x = 0, p2z = 0, ret = 0;
+        for (int i = 0; i < pointCount; i++) {
+            p1x = pointXs[i];
+            p1z = pointZs[i];
+            if (i == pointCount - 1) {
+                p2x = pointXs[0];
+                p2z = pointZs[0];
+            } else {
+                p2x = pointXs[i + 1];
+                p2z = pointZs[i + 1];
+            }
+            double ss = sq(p1x, p1z, p2x, p2z, x, z);
+            if (ss != 0) {
+                /*答案小于0则说明P在线段的右边，大于0则在左边，等于0说明在线段上。*/
+                if (ret != 0) {
+                    /*如果不是0，表示方向反向了*/
+                    if ((ss > 0 && ret < 0) || (ss < 0 && ret > 0)) {
+                        return false;
+                    }
+                }
+                ret = ss;
+            }
+        }
+        return true;
+    }
+
+    double sq(double p1x, double p1z, double p2x, double p2z, double x, double z) {
+        return (z - p1z) * (p2x - p1x) - (x - p1x) * (p2z - p1z);
+    }
+
+    @Override
+    public String toString() {
+        String trString = "";
+        if (pointCount > 0) {
+            trString += "{" + pointXs[0] + "," + pointZs[0] + "}";
+            for (int i = 1; i < pointCount; i++) {
+                trString += ",{" + pointXs[i] + "," + pointZs[i] + "}";
+            }
+        }
+        return trString;
+    }
+
+    public static void main(String[] args) {
+        double px = 2.901;
+        double py = 3.001;
+        PolygonCheck polygonCheck = new PolygonCheck(4);
+        polygonCheck.add(2, 2);
+        polygonCheck.add(3, 2);
+        polygonCheck.add(3, 5);
+        polygonCheck.add(2, 5);
+        System.out.println(polygonCheck.contains(3, 5.001));
+        System.out.println(polygonCheck.contains(3, 5));
+        System.out.println(polygonCheck.contains(2.5, 4));
     }
 }

@@ -6,18 +6,20 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import org.apache.log4j.Logger;
 
 /**
- *
+ * 安全的list，但是不能把保证并发瓶颈
+ * <br>
+ * 高并发可能出现 block
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
+ *
+ * @param <E>
  */
-public class ConcurrentArraylist<E> extends ArrayList<E> {
+public class ConcurrentArraylist<E> extends ArrayList<E> implements Cloneable, java.io.Serializable {
 
-    private static final Logger log = Logger.getLogger(ConcurrentArraylist.class);
     private static final long serialVersionUID = -1148457730425654441L;
 
     @Override
@@ -79,6 +81,21 @@ public class ConcurrentArraylist<E> extends ArrayList<E> {
     @Override
     public boolean add(E e) {
         synchronized (this) {
+            return super.add(e); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+
+    /**
+     * 如果不存在相同就增加，如果存在相同的就更新
+     *
+     * @param e
+     * @return
+     */
+    public boolean update(E e) {
+        synchronized (this) {
+            if (contains(e)) {
+                remove(e);
+            }
             return super.add(e); //To change body of generated methods, choose Tools | Templates.
         }
     }
@@ -162,6 +179,13 @@ public class ConcurrentArraylist<E> extends ArrayList<E> {
     public void trimToSize() {
         synchronized (this) {
             super.trimToSize(); //To change body of generated methods, choose Tools | Templates.
+        }
+    }
+
+    @Override
+    public Object clone() {
+        synchronized (this) {
+            return super.clone(); //To change body of generated methods, choose Tools | Templates.
         }
     }
 

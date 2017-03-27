@@ -1,41 +1,57 @@
 package net.sz;
 
+import net.sz.game.engine.struct.Vector;
+import net.sz.game.engine.utils.MoveUtil;
+
+import net.sz.game.engine.szlog.SzLogger;
+
 /**
  *
  * @author troy-pc
  */
 public class ATest {
 
+    private static SzLogger log = SzLogger.getLogger();
+
     public static void main(String[] args) {
-        Point p1 = new Point(0, 0);
-        Point p2 = new Point(3, 0);
-        Point p3 = new Point(3, 1);
-        Point p4 = new Point(0, 1);
 
-        Point p5 = new Point(5, 1.1);
+        /*攻击方坐标点是 2,2     被攻击 6,7*/
+        Vector vector = MoveUtil.getV12Vector(2, 2, 6, 7);
+        log.error(vector);
+        /*扇形半径为5码*/
+        double vr = 5;
+        /*我们当前扇形是70°攻击范围*/
+        double skillAngle = 35;
+        /*有角度 为扇形*/
+        double atan360 = vector.getAtan360();
+        /*往左偏移 A1*/
+        double aTan360_A1 = MoveUtil.getATan360(atan360, -1 * skillAngle);
+        /*往右偏移 A2*/
+        double aTan360_A2 = MoveUtil.getATan360(atan360, skillAngle);
+        /*求证 5,5 点位是否在矩形内*/
+        if (MoveUtil.distance(2, 2, 5, 5) <= vr) {
+            double tmpTan360 = MoveUtil.getATan360(2, 2, 5, 5);
+            log.error("当前点位（5, 5）在扇形内 360°=" + tmpTan360);
+            if ((aTan360_A1 > aTan360_A2 && ((aTan360_A1 <= tmpTan360 && tmpTan360 <= 360) || (0 <= tmpTan360 && tmpTan360 <= aTan360_A2)))
+                    || (aTan360_A1 < aTan360_A2 && aTan360_A1 <= tmpTan360 && tmpTan360 <= aTan360_A2)) {
+                /*"修正后的夹角：" + aTan360_A1 + " ~ 360 和 0 ~" + aTan360_A2*/
+                log.error("当前点位（5, 5）在扇形 内");
+            } else {
+                log.error("当前点位（5, 5）在扇形 外");
+            }
+        }
 
-        double len51 = Math.pow(p5.x - p1.x, 2) + Math.pow(p5.y - p1.y, 2);
-        double len52 = Math.pow(p5.x - p2.x, 2) + Math.pow(p5.y - p2.y, 2);
-        double len53 = Math.pow(p5.x - p3.x, 2) + Math.pow(p5.y - p3.y, 2);
-        double len54 = Math.pow(p5.x - p4.x, 2) + Math.pow(p5.y - p4.y, 2);
-
-        double r1 = Math.acos((len51 + len52 - 9) / (2 * Math.pow(len51, 0.5) * Math.pow(len52, 0.5)));
-        double r2 = Math.acos((len52 + len53 - 1) / (2 * Math.pow(len52, 0.5) * Math.pow(len53, 0.5)));
-        double r3 = Math.acos((len53 + len54 - 9) / (2 * Math.pow(len53, 0.5) * Math.pow(len54, 0.5)));
-        double r4 = Math.acos((len54 + len51 - 1) / (2 * Math.pow(len54, 0.5) * Math.pow(len51, 0.5)));
-
-        System.out.println(r1 + r2 + r3 + r4);
-    }
-}
-
-class Point {
-
-    double x;
-    double y;
-
-    public Point(double x, double y) {
-        super();
-        this.x = x;
-        this.y = y;
+        /*求证 1,1 点位是否在矩形内*/
+        if (MoveUtil.distance(2, 2, 1, 1) <= vr) {
+            double tmpTan360 = MoveUtil.getATan360(2, 2, 1, 1);
+            log.error("当前点位（1, 1）在扇形内 360°=" + tmpTan360);
+            if ((aTan360_A1 > aTan360_A2 && ((aTan360_A1 <= tmpTan360 && tmpTan360 <= 360) || (0 <= tmpTan360 && tmpTan360 <= aTan360_A2)))
+                    || (aTan360_A1 < aTan360_A2 && aTan360_A1 <= tmpTan360 && tmpTan360 <= aTan360_A2)) {
+                /*"修正后的夹角：" + aTan360_A1 + " ~ 360 和 0 ~" + aTan360_A2*/
+                log.error("当前点位(1, 1)在扇形 内");
+            } else {
+                log.error("当前点位（1, 1）在扇形 外");
+            }
+        }
     }
 }

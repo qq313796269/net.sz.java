@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
-import org.apache.log4j.Logger;
 
 /**
  * 用来主动发起HTTP请求的类
@@ -18,7 +17,6 @@ import org.apache.log4j.Logger;
  */
 public class HttpUtil {
 
-    private static Logger log = Logger.getLogger(HttpUtil.class);
     /**
      * 如果请求抛错，或者未找到，都是这个字符串
      */
@@ -49,28 +47,49 @@ public class HttpUtil {
                         long currentTimeMillis = System.currentTimeMillis();
                         String urlGet = urlGet("http://127.0.0.1:1000/login", "platform=100&username=ROBOT111&userpwd=1");
                         long currentTimeMillis1 = System.currentTimeMillis();
-                        log.debug((currentTimeMillis1 - currentTimeMillis) + " " + urlGet);
+                        System.out.println((currentTimeMillis1 - currentTimeMillis) + " " + urlGet);
                     }
                 }
             }).start();
         }
     }
 
-    public static String urlPost(String urlString, Map<String, String> parms) {
+    /**
+     *
+     * @param urlString
+     * @param parms post 参数键值对
+     * @return
+     */
+    public static String urlPost(String urlString, Map<String, Object> parms) {
         return urlPost(urlString, parms, 100);
     }
 
-    public static String urlPost(String urlString, Map<String, String> parms, int timeout) {
+    /**
+     *
+     * @param urlString
+     * @param parms post 参数键值对
+     * @param timeout
+     * @return
+     */
+    public static String urlPost(String urlString, Map<String, Object> parms, int timeout) {
         return urlPost(urlString, parms, null, timeout);
     }
 
-    public static String urlPost(String urlString, Map<String, String> parms, Map<String, String> properties, int timeout) {
+    /**
+     *
+     * @param urlString
+     * @param parms post 参数键值对
+     * @param properties head 参数键值对
+     * @param timeout
+     * @return
+     */
+    public static String urlPost(String urlString, Map<String, Object> parms, Map<String, Object> properties, int timeout) {
         StringBuilder builder = new StringBuilder();
         if (parms != null) {
             int i = 0;
-            for (Map.Entry<String, String> entry : parms.entrySet()) {
+            for (Map.Entry<String, Object> entry : parms.entrySet()) {
                 String key = entry.getKey();
-                String value = entry.getValue();
+                Object value = entry.getValue();
                 builder.append(key).append("=").append(value);
                 if (i < parms.size() - 1) {
                     builder.append("&");
@@ -81,18 +100,42 @@ public class HttpUtil {
         return urlPost(urlString, builder.toString(), properties, timeout);
     }
 
+    /**
+     *
+     * @param urlString
+     * @return
+     */
     public static String urlPost(String urlString) {
         return urlPost(urlString, "", null, 100);
     }
 
+    /**
+     *
+     * @param urlString
+     * @param timeout
+     * @return
+     */
     public static String urlPost(String urlString, int timeout) {
         return urlPost(urlString, "", null, timeout);
     }
 
+    /**
+     *
+     * @param urlString
+     * @param msg 键=值,键=值
+     * @return
+     */
     public static String urlPost(String urlString, String msg) {
         return urlPost(urlString, msg, 0);
     }
 
+    /**
+     *
+     * @param urlString
+     * @param msg 键=值,键=值
+     * @param timeout
+     * @return
+     */
     public static String urlPost(String urlString, String msg, int timeout) {
         return urlPost(urlString, msg, null, timeout);
     }
@@ -100,25 +143,41 @@ public class HttpUtil {
     /**
      *
      * @param urlString
-     * @param msg
+     * @param msg 键=值,键=值
      * @param properties
+     * @param timeout
      * @return
      */
-    public static String urlPost(String urlString, String msg, Map<String, String> properties, int timeout) {
+    public static String urlPost(String urlString, String msg, Map<String, Object> properties, int timeout) {
         return sendUrl(urlString, msg, HTTPMethod.POST, properties, timeout);
     }
 
-    public static String urlGet(String urlString, Map<String, String> parms, int timeout) {
+    /**
+     *
+     * @param urlString
+     * @param parms
+     * @param timeout
+     * @return
+     */
+    public static String urlGet(String urlString, Map<String, Object> parms, int timeout) {
         return urlGet(urlString, parms, null, timeout);
     }
 
-    public static String urlGet(String urlString, Map<String, String> parms, Map<String, String> properties, int timeout) {
+    /**
+     *
+     * @param urlString
+     * @param parms
+     * @param properties
+     * @param timeout
+     * @return
+     */
+    public static String urlGet(String urlString, Map<String, Object> parms, Map<String, Object> properties, int timeout) {
         StringBuilder builder = new StringBuilder();
         if (parms != null) {
             int i = 0;
-            for (Map.Entry<String, String> entry : parms.entrySet()) {
+            for (Map.Entry<String, Object> entry : parms.entrySet()) {
                 String key = entry.getKey();
-                String value = entry.getValue();
+                Object value = entry.getValue();
                 builder.append(key).append("=").append(value);
                 if (i < parms.size() - 1) {
                     builder.append("&");
@@ -129,6 +188,11 @@ public class HttpUtil {
         return urlGet(urlString, builder.toString(), properties, timeout);
     }
 
+    /**
+     *
+     * @param urlString
+     * @return
+     */
     public static String urlGet(String urlString) {
         return urlGet(urlString, "", null, 100);
     }
@@ -146,43 +210,48 @@ public class HttpUtil {
      * @param urlString
      * @param msg
      * @param properties
+     * @param timeout
      * @return
      */
-    public static String urlGet(String urlString, String msg, Map<String, String> properties, int timeout) {
+    public static String urlGet(String urlString, String msg, Map<String, Object> properties, int timeout) {
         return sendUrl(urlString, msg, HTTPMethod.GET, properties, timeout);
     }
 
-    static String sendUrl(String urlString, String msg, HTTPMethod method, Map<String, String> properties, int timeout) {
+    static String sendUrl(String urlString, String msg, HTTPMethod method, Map<String, Object> properties, int timeout) {
         try {
             HttpURLConnection urlConnection = null;
 
             URL url = new URL(urlString);
+            //请求协议(此处是http)生成的URLConnection类，用于打开URL连接
             urlConnection = (HttpURLConnection) url.openConnection();
 
             if (properties != null) {
                 for (String key : properties.keySet()) {
-                    urlConnection.addRequestProperty(key, properties.get(key));
+                    //设置请求属性
+                    urlConnection.addRequestProperty(key, properties.get(key).toString());
                 }
             }
-
+            //// 设定请求的方法为"GET"，默认是GET
             urlConnection.setRequestMethod(method.getValue());
+            //http正文内，因此需要设为true, 默认情况下是false;
             urlConnection.setDoOutput(true);
+            //设置是否从httpUrlConnection读入，默认情况下是true;
             urlConnection.setDoInput(true);
+            // Post 请求不能使用缓存
             urlConnection.setUseCaches(false);
             /* 先用 400 毫秒 */
             urlConnection.setConnectTimeout(400);
             urlConnection.setReadTimeout(timeout);
+            //此处getOutputStream会隐含的进行connect
             try (OutputStream outputStream = urlConnection.getOutputStream()) {
                 outputStream.write(msg.getBytes("utf-8"));
                 outputStream.flush();
                 outputStream.close();
             }
             return makeContent(urlString, urlConnection);
-        } catch (Exception ex) {
-            //log.debug("发送http请求" + urlString, ex);
-            log.debug("发送http请求" + urlString + " 失败！！！" + ex.toString());
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("发送http请求", ex);
         }
-        return null;
     }
 
     /**
@@ -212,8 +281,8 @@ public class HttpUtil {
                     }
                 }
             }
-        } catch (Exception e) {
-            log.error("回调错误" + urlConnection.getURL(), e);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("发送http请求", ex);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();

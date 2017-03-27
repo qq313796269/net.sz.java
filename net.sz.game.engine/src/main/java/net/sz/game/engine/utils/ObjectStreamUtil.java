@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -14,8 +13,6 @@ import org.apache.log4j.Logger;
  * phone 13882122019<br>
  */
 public class ObjectStreamUtil {
-
-    private static final Logger log = Logger.getLogger(ObjectStreamUtil.class);
 
     public static byte[] toBytes(Object obj) {
         if (obj == null) {
@@ -27,9 +24,8 @@ public class ObjectStreamUtil {
                 oos.flush();
                 return baos.toByteArray();
             }
-        } catch (Exception ex) {
-            log.error("对象转 byte[] 出现错误", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("对象转 byte[] 出现错误", ex);
         }
     }
 
@@ -44,9 +40,8 @@ public class ObjectStreamUtil {
     public static <T> T toObject(Class<T> clazz, byte[] bytes) {
         try {
             return (T) toObject(bytes);
-        } catch (Exception ex) {
-            log.error(" byte[] 转 对象 出现错误", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("byte[] 转 对象 出现错误", ex);
         }
     }
 
@@ -58,9 +53,8 @@ public class ObjectStreamUtil {
             try (ObjectInputStream ois = new ObjectInputStream(bais)) {
                 return ois.readObject();
             }
-        } catch (Exception ex) {
-            log.error(" byte[] 转 对象 出现错误", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("byte[] 转 对象 出现错误",ex);
         }
     }
 
@@ -73,9 +67,8 @@ public class ObjectStreamUtil {
     public static Object deepCopy(Object obj) {
         try {
             return toObject(toBytes(obj));
-        } catch (Exception ex) {
-            log.error("深拷贝对象出现错误", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("深拷贝对象出现错误",ex);
         }
     }
 

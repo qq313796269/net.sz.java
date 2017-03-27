@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 public class PackageUtil {
 
-    private static final Logger log = Logger.getLogger(PackageUtil.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     public static void main(String[] args) throws Exception {
         //String packageName = "net.sz.engine.nio.netty";
@@ -71,7 +71,7 @@ public class PackageUtil {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("", e);
         }
         return fileNames;
@@ -111,65 +111,6 @@ public class PackageUtil {
         return myClassName;
     }
 
-//    static MyClassLoader myClassLoader = new MyClassLoader();
-//    static class MyClassLoader extends ClassLoader {
-//
-//        @Override
-//        public Class<?> loadClass(String name) throws ClassNotFoundException {
-//            Class<?> defineClass = null;
-//            defineClass = super.loadClass(name);
-//            return defineClass;
-//        }
-//
-//        public Class<?> getClazz(String name, File file) {
-//            try {
-//                Class<?> loadClass = loadClass(name);
-//                if (loadClass != null) {
-//                    return loadClass;
-//                }
-//            } catch (Exception e) {
-//                log.error(e);
-//            }
-//            byte[] classData = getClassData(file);
-//            return getClazz(name, classData);
-//        }
-//
-//        public Class<?> getClazz(String name, byte[] classData) {
-//            if (classData != null) {
-//                try {
-//                    log.debug(name);
-//                    Class<?> defineClass = defineClass(name, classData, 0, classData.length);
-//                    if (!Modifier.isAbstract(defineClass.getModifiers()) && !defineClass.isInterface()) {
-//                        return defineClass;
-//                    }
-//                } catch (Exception ex) {
-//
-//                }
-//            }
-//            return null;
-//        }
-//
-//        private byte[] getClassData(File file) {
-//            try {
-//                if (file.exists()) {
-//                    InputStream ins = new FileInputStream(file);
-//                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//                    int bufferSize = 4096;
-//                    byte[] buffer = new byte[bufferSize];
-//                    int bytesNumRead = 0;
-//                    while ((bytesNumRead = ins.read(buffer)) != -1) {
-//                        baos.write(buffer, 0, bytesNumRead);
-//                    }
-//
-//                    return baos.toByteArray();
-//
-//                }
-//            } catch (IOException ex) {
-//                ex.printStackTrace();
-//            }
-//            return null;
-//        }
-//    }
     /**
      * 从jar获取某包下所有类
      *
@@ -220,7 +161,7 @@ public class PackageUtil {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("", e);
         }
         return myClassName;

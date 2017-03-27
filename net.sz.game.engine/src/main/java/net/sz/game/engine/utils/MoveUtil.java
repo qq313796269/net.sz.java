@@ -1,19 +1,16 @@
 package net.sz.game.engine.utils;
 
+import net.sz.game.engine.struct.PolygonCheck;
 import net.sz.game.engine.struct.Vector;
-import net.sz.test.PolygonCheck;
-import org.apache.log4j.Logger;
 
 /**
- *
+ * 移动和工具辅助函数
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
 public class MoveUtil {
-
-    private static final Logger log = Logger.getLogger(MoveUtil.class);
 
     /**
      * 一个格子的大小
@@ -111,6 +108,121 @@ public class MoveUtil {
         return _p * _r + _r / 2;
     }
 
+    // <editor-fold defaultstate="collapsed" desc="获取方向 static public byte getVector8(double x1, double z1, double x2, double z2)">
+    /**
+     * 获取方向
+     * <br>
+     * 根据特点，0方向是y轴正方向，顺时针移动
+     *
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
+     * @return
+     */
+    static public byte getVector8(double x1, double z1, double x2, double z2) {
+        Vector v12Vector = getV12Vector(x1, z1, x2, z2);
+        double aTan360 = v12Vector.getAtan360();
+        byte vector = 0;
+        if (22.5 < aTan360 && aTan360 <= 67.5) {
+            /* ↘ */
+            vector = 3;
+        } else if (aTan360 <= 112.5) {
+            /* ↓ */
+            vector = 4;
+        } else if (aTan360 <= 157.5) {
+            /* ↙ */
+            vector = 5;
+        } else if (aTan360 <= 202.5) {
+            /* ← */
+            vector = 6;
+        } else if (aTan360 <= 247.5) {
+            /* ↖ */
+            vector = 7;
+        } else if (aTan360 <= 292.5) {
+            /* ↑ */
+            vector = 0;
+        } else if (aTan360 <= 337.5) {
+            /* ↗ */
+            vector = 1;
+        } else {
+            /* → */
+            vector = 2;
+        }
+        return vector;
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="位移时的z轴 static float getV8Z(int vector, double offset)">
+    public static double getV8Z(double offset, double sin) {
+        double sinr = offset * Math.sin(Math.toRadians(sin));
+        return BitUtil.getDouble4(sinr);
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="位移时的X轴 static float getV8X(int vector, double offset)">
+    /**
+     *
+     * @param offset 位移量
+     * @param cos 角度
+     * @return
+     */
+    public static double getV8X(double offset, double cos) {
+        double sinr = offset * Math.cos(Math.toRadians(cos));
+        return BitUtil.getDouble4(sinr);
+    }
+    //</editor-fold>
+
+    /**
+     * 获取两个坐标点的朝向(x1z1坐标点根据x2z2坐标点获得朝向)
+     *
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
+     * @return
+     */
+    public static Vector getV12Vector(double x1, double z1, double x2, double z2) {
+        Vector vector = new Vector();
+        getV12Vector(vector, x1, z1, x2, z2);
+        return vector;
+    }
+
+    /**
+     * 获取两个坐标点的朝向
+     *
+     * @param vector
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
+     */
+    public static void getV12Vector(Vector vector, double x1, double z1, double x2, double z2) {
+//        log.error("切换坐标点", new Exception());
+        vector.setAtan(getATan(x1, z1, x2, z2));
+        vector.setDir(_getVector12(vector.getAtan(), x1, z1, x2, z2));
+        vector.setDir_x(getVector12_x(x1, x2));
+        vector.setDir_z(getVector12_z(z1, z2));
+        vector.setAtan360(getATan360ByaTan(vector.getAtan(), vector.getDir(), vector.getDir_x(), vector.getDir_z()));
+    }
+
+    /**
+     * 获取两个坐标点的朝向
+     *
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
+     * @return
+     */
+    public static double getATan360(double x1, double z1, double x2, double z2) {
+        double aTan = getATan(x1, z1, x2, z2);
+        byte _getVector12 = _getVector12(aTan, x1, z1, x2, z2);
+        byte vector12_x = getVector12_x(x1, x2);
+        byte vector12_z = getVector12_z(z1, z2);
+        return getATan360ByaTan(aTan, _getVector12, vector12_x, vector12_z);
+    }
+
     /**
      * 朝向是有修正，在修正下真实朝向，有正负区分
      *
@@ -180,127 +292,23 @@ public class MoveUtil {
     }
     //</editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="获取方向 static public byte getVector8(double x1, double z1, double x2, double z2)">
-    /**
-     * 获取方向
-     * <br>
-     * 根据特点，0方向是y轴正方向，顺时针移动
-     *
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     * @return
-     */
-    static public byte getVector8(double x1, double z1, double x2, double z2) {
-        Vector v12Vector = getV12Vector(x1, z1, x2, z2);
-        double aTan360 = v12Vector.getAtan360();
-        byte vector = 0;
-        if (22.5 < aTan360 && aTan360 <= 67.5) {
-            /* ↘ */
-            vector = 3;
-        } else if (aTan360 <= 112.5) {
-            /* ↓ */
-            vector = 4;
-        } else if (aTan360 <= 157.5) {
-            /* ↙ */
-            vector = 5;
-        } else if (aTan360 <= 202.5) {
-            /* ← */
-            vector = 6;
-        } else if (aTan360 <= 247.5) {
-            /* ↖ */
-            vector = 7;
-        } else if (aTan360 <= 292.5) {
-            /* ↑ */
-            vector = 0;
-        } else if (aTan360 <= 337.5) {
-            /* ↗ */
-            vector = 1;
-        } else {
-            /* → */
-            vector = 2;
-        }
-        return vector;
-    }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="位移时的z轴 static float getV8Z(int vector, double offset)">
-    public static double getV8Z(double offset, double sin) {
-        double sinr = offset * Math.sin(Math.toRadians(sin));
-        return BitUtil.getDouble4(sinr);
-    }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="位移时的X轴 static float getV8X(int vector, double offset)">
     /**
      *
-     * @param offset 位移量
-     * @param cos 角度
-     * @return
-     */
-    public static double getV8X(double offset, double cos) {
-        double sinr = offset * Math.cos(Math.toRadians(cos));
-        return BitUtil.getDouble4(sinr);
-    }
-    //</editor-fold>
-
-    /**
-     * 获取两个坐标点的朝向
-     *
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     * @return
-     */
-    public static Vector getV12Vector(double x1, double z1, double x2, double z2) {
-        Vector vector = new Vector();
-        getV12Vector(vector, x1, z1, x2, z2);
-        return vector;
-    }
-
-    /**
-     * 获取两个坐标点的朝向
-     *
-     * @param vector
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     */
-    public static void getV12Vector(Vector vector, double x1, double z1, double x2, double z2) {
-        vector.setAtan(getATan(x1, z1, x2, z2));
-        vector.setDir(_getVector12(vector.getAtan(), x1, z1, x2, z2));
-        vector.setDir_x(getVector12_x(x1, x2));
-        vector.setDir_z(getVector12_z(z1, z2));
-        vector.setAtan360(getATan360ByaTan(vector.getAtan(), vector.getDir(), vector.getDir_x(), vector.getDir_z()));
-    }
-
-    /**
-     * 获取两个坐标点的朝向
-     *
-     * @param x1
-     * @param z1
-     * @param x2
-     * @param z2
-     * @return
-     */
-    public static double getATan360(double x1, double z1, double x2, double z2) {
-        double aTan = getATan(x1, z1, x2, z2);
-        byte _getVector12 = _getVector12(aTan, x1, z1, x2, z2);
-        byte vector12_x = getVector12_x(x1, x2);
-        byte vector12_z = getVector12_z(z1, z2);
-        return getATan360ByaTan(aTan, _getVector12, vector12_x, vector12_z);
-    }
-
-    /**
-     *
-     * @param atan360
+     * @param atan360 360° 角度，
      * @return
      */
     public static Vector getVectorBy360Atan(double atan360) {
         Vector vector = new Vector();
+        return getVectorBy360Atan(vector, atan360);
+    }
+
+    /**
+     *
+     * @param vector
+     * @param atan360 360° 角度，
+     * @return
+     */
+    public static Vector getVectorBy360Atan(Vector vector, double atan360) {
         vector.setAtan360(atan360);
         setAtan360(vector);
         return vector;
@@ -454,12 +462,10 @@ public class MoveUtil {
             } else if (y1 > y2) {
                 vector = 7;
             }
+        } else if (y1 > y2) {
+            vector = 6;
         } else {
-            if (y1 > y2) {
-                vector = 6;
-            } else {
-                vector = 0;
-            }
+            vector = 0;
         }
 
         return vector;
@@ -493,8 +499,8 @@ public class MoveUtil {
             case 6:
             case 7:
             case 8:
-                if (vz > 0) {
-                    aTan = -90 - aTan;
+                if (vx > 0) {
+                    aTan = 90 + aTan;
                 } else {
                     aTan = 270 - aTan;
                 }
@@ -512,29 +518,51 @@ public class MoveUtil {
         return aTan;
     }
 
-    static int vdir = 3; //相对玩家的90°朝向偏移量
-
-    // <editor-fold defaultstate="collapsed" desc="90°朝向矩形，以传入的坐标点为AB边中心点距离 static public java.awt.Polygon getRectangle(int dir, double x, double y, double vr, double vr_width, double vr_hight)">
     /**
-     * 90°朝向矩形，以传入的坐标点为AB边中心点距离
+     * 计算两点距离
      *
-     * @param vector 当前朝向
-     * @param x 当前坐标点
-     * @param y 当前坐标点
-     * @param vr 原点偏移量，AB编中心点90°偏移量 偏移，正前方（正数）或者正后方（负数）米数
-     * @param vr_width 偏移量，矩形的宽度，左右各偏移0.2m直线是0.4m
-     * @param vr_hight 偏移量高，矩形的长度
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
      * @return
      */
-    static public PolygonCheck getRectangle(Vector vector, double x, double y, double vr, double vr_width, double vr_hight) {
-        //宽度修正
-        vr_width = vr_width / 2;
+    public static double distance(double x1, double z1, double x2, double z2) {
+        x1 -= x2;
+        z1 -= z2;
+        return Math.sqrt(x1 * x1 + z1 * z1);
+    }
 
-        Vector aVector = getVectorBy360Atan(getATan360(vector.getAtan360(), -90));
-        Vector bVector = getVectorBy360Atan(getATan360(vector.getAtan360(), 90));
+    /**
+     * 未开平方根的距离
+     *
+     * @param x1
+     * @param z1
+     * @param x2
+     * @param z2
+     * @return
+     */
+    public static double distanceSq(double x1, double z1, double x2, double z2) {
+        x1 -= x2;
+        z1 -= z2;
+        return (x1 * x1 + z1 * z1);
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="当前坐标点位中心点的等角（等边）三角形，当前朝向位A点顶点延伸 static public PolygonCheck getTriangle(Vector vector, double x, double z, double vr)">
+    /**
+     * 当前坐标点位中心点的等角（等边）三角形，当前朝向位A点顶点延伸
+     *
+     * @param vector
+     * @param x
+     * @param z
+     * @param vr 中心点偏移位置
+     * @param vr_width 三角形，中心点距离顶点距离
+     * @return
+     */
+    static public PolygonCheck getTriangle(Vector vector, double x, double z, double vr, double vr_width) {
 
         if (vr != 0) {
-            /* 根据三角函数计算出 A 点偏移量 */
+            /* 根据三角函数计算出 中心点 偏移量 */
             double v12_V_X = 0;
             double v12_V_Y = 0;
             if (vr < 0) {
@@ -547,7 +575,63 @@ public class MoveUtil {
                 v12_V_Y = vector.getDir_z() * getV12ZD(vr, vector.getAtan());
             }
             x += v12_V_X;
-            y += v12_V_Y;
+            z += v12_V_Y;
+        }
+
+        Vector bVector = getVectorBy360Atan(getATan360(vector.getAtan360(), 120));
+        Vector cVector = getVectorBy360Atan(getATan360(vector.getAtan360(), 240));
+
+        double ax = x + (vector.getDir_x() * getV12XD(vr, vector.getAtan()));
+        double az = z + (vector.getDir_z() * getV12ZD(vr, vector.getAtan()));
+
+        double bx = x + (bVector.getDir_x() * getV12XD(vr, bVector.getAtan()));
+        double bz = z + (bVector.getDir_z() * getV12ZD(vr, bVector.getAtan()));
+
+        double cx = x + (cVector.getDir_x() * getV12XD(vr, cVector.getAtan()));
+        double cz = z + (cVector.getDir_z() * getV12ZD(vr, cVector.getAtan()));
+
+        PolygonCheck polygonCheck = new PolygonCheck(3);
+        polygonCheck.add(ax, az);
+        polygonCheck.add(bx, bz);
+        polygonCheck.add(cx, cz);
+        return polygonCheck;
+    }
+// </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="90°朝向矩形，以传入的坐标点为AB边中心点距离 static public PolygonCheck getRectangle(Vector vector, double x, double y, double vr, double vr_width, double vr_hight)">
+    /**
+     * 90°朝向矩形，以传入的坐标点为AB边中心点距离
+     *
+     * @param vector 当前朝向
+     * @param x 当前坐标点
+     * @param z 当前坐标点
+     * @param offset 原点偏移量，AB编中心点90°偏移量 偏移，正前方（正数）或者正后方（负数）米数
+     * @param vr_width 偏移量，矩形的宽度，左右各偏移0.2m直线是0.4m
+     * @param vr_hight 偏移量高，矩形的长度
+     * @return
+     */
+    static public PolygonCheck getRectangle(Vector vector, double x, double z, double offset, double vr_width, double vr_hight) {
+        //宽度修正
+        vr_width = vr_width / 2;
+
+        Vector aVector = getVectorBy360Atan(getATan360(vector.getAtan360(), -90));
+        Vector bVector = getVectorBy360Atan(getATan360(vector.getAtan360(), 90));
+
+        if (offset != 0) {
+            /* 根据三角函数计算出 中心点 偏移量 */
+            double v12_V_X = 0;
+            double v12_V_Y = 0;
+            if (offset < 0) {
+                /* 传入负数的时候方向刚好是相反方向运动 */
+                v12_V_X = -1 * vector.getDir_x() * getV12XD(offset, vector.getAtan());
+                v12_V_Y = -1 * vector.getDir_z() * getV12ZD(offset, vector.getAtan());
+            } else {
+                /* 正前方移动 */
+                v12_V_X = vector.getDir_x() * getV12XD(offset, vector.getAtan());
+                v12_V_Y = vector.getDir_z() * getV12ZD(offset, vector.getAtan());
+            }
+            x += v12_V_X;
+            z += v12_V_Y;
         }
 
         /* 根据三角函数计算出 A 点偏移量 */
@@ -555,14 +639,14 @@ public class MoveUtil {
         double v12_A_Y = aVector.getDir_z() * getV12ZD(vr_width, aVector.getAtan());
         /* 由于在计算12方向位移函数里面已经计算偏移量是正负值 */
         double A_X = x + v12_A_X;
-        double A_Y = y + v12_A_Y;
+        double A_Y = z + v12_A_Y;
 
         /* 根据三角函数计算出 B 点偏移量 */
         double v12_B_X = bVector.getDir_x() * getV12XD(vr_width, bVector.getAtan());
         double v12_B_Y = bVector.getDir_z() * getV12ZD(vr_width, bVector.getAtan());
         /* 由于在计算12方向位移函数里面已经计算偏移量是正负值 */
         double B_X = x + v12_B_X;
-        double B_Y = y + v12_B_Y;
+        double B_Y = z + v12_B_Y;
 
         /* 根据三角函数计算出 C 或者 D 点偏移量 */
         double v12_CD_X = vector.getDir_x() * getV12XD(vr_hight, vector.getAtan());
@@ -577,56 +661,22 @@ public class MoveUtil {
 
         PolygonCheck polygonCheck = new PolygonCheck(4);
         polygonCheck.add(A_X, A_Y);
-        log.debug("A_X：" + A_X + " A_Y：" + A_Y);
         polygonCheck.add(B_X, B_Y);
-        log.debug("B_X：" + B_X + " B_Y：" + B_Y);
         polygonCheck.add(C_X, C_Y);
-        log.debug("C_X：" + C_X + " C_Y：" + C_Y);
         polygonCheck.add(D_X, D_Y);
-        log.debug("D_X：" + D_X + " D_Y：" + D_Y);
         return polygonCheck;
     }
     //</editor-fold>
 
-    static final int TIMES = 1000;
-
     public static void main(String[] args) {
-        double x1 = 20, z1 = 20, x2 = 20, z2 = 10;
+        double x1 = 110.11, z1 = 46.52, x2 = 114.90, z2 = 36.35;
+        System.out.println(distance(x1, z1, x2, z2));
         Vector v12Vector = getV12Vector(x1, z1, x2, z2);
-
-        log.error("当前朝向：" + v12Vector.getDir());
-//        log.error("当前朝向-x：" + v12Vector.getDir_x());
-//        log.error("当前朝向-z：" + v12Vector.getDir_z());
-        log.error("当前角度：" + v12Vector.getAtan());
-        log.error("当前360角度：" + v12Vector.getAtan360());
-
-//        double v12X = v12Vector.getDir_x() * getV12X(1d, v12Vector.getAtan());
-//        log.error("当前位移量-x：" + v12X);
-//        double v12Z = v12Vector.getDir_z() * getV12Z(1d, v12Vector.getAtan());
-//        log.error("当前位移量-y：" + v12Z);
-//        double aTan = getATan360(v12Vector.getAtan360(), -10);
-//        log.error("修正后的角度：" + aTan);
-//        double aTanDir = getATan360(v12Vector.getAtan360(), 10);
-//        log.error("修正后的角度：" + aTanDir);
-//
-//        if (aTan > aTanDir) {
-//            log.error("修正后的夹角：" + aTan + " ~ 360 和 0 ~" + aTanDir);
-//        } else {
-//            log.error("修正后的夹角：" + aTan + " ~ " + aTanDir);
-//        }
-//        aTan = getATan360(aTan, -10);
-//        log.error("修正后的角度：" + aTan);
-//        aTanDir = getATan360(aTanDir, -10);
-//        log.error("修正后的角度：" + aTanDir);
-//
-//        if (aTan > aTanDir) {
-//            log.error("修正后的夹角：" + aTan + " ~ 360 和 0 ~" + aTanDir);
-//        } else {
-//            log.error("修正后的夹角：" + aTan + " ~ " + aTanDir);
-//        }
-        PolygonCheck rectangle = getRectangle(v12Vector, x1, z1, 0, 4, 4);
-
-        log.error(rectangle.isInPolygon(18, 17));
-
+        System.out.println(v12Vector);
+        for (int i = 0; i < 11; i++) {
+            PolygonCheck rectangle = getRectangle(v12Vector, x1, z1, i, 3, 1);
+            System.out.println(rectangle.contains(x2, z2));
+//            System.out.println(rectangle.toString());
+        }
     }
 }

@@ -1,8 +1,6 @@
 package net.sz.game.engine.utils;
 
-import java.util.HashSet;
 import java.util.UUID;
-import net.sz.game.engine.util.ConcurrentHashSet;
 
 /**
  *
@@ -130,7 +128,6 @@ public class GlobalUtil {
 
     public static void checkPlatZone(int gameid, int platform) {
         PLATZONE = PlatZone.getPlatZone(gameid, platform);
-
     }
 
     /**
@@ -148,11 +145,11 @@ public class GlobalUtil {
     /**
      *
      */
-    private static LongIdUtil ids = null;
+    private static LongId3Util ids = null;
     /**
      * 用于场景的一切对象生成id，包 玩家id，怪物id，保证不重复
      */
-    private static LongIdUtil mapObjectIdUtil = null;
+    private static LongId3Util mapObjectIdUtil = null;
     /**
      * 用于场景副本 ID 保证不重复
      */
@@ -161,11 +158,11 @@ public class GlobalUtil {
     /**
      * 用于邮件的id
      */
-    private static LongIdUtil mailIdUtil = null;
+    private static LongId3Util mailIdUtil = null;
     /**
      * 道具id，
      */
-    private static LongIdUtil goodsIdUtil = null;
+    private static LongId3Util goodsIdUtil = null;
 
     public static int getServerID() {
         return ServerID;
@@ -173,10 +170,10 @@ public class GlobalUtil {
 
     public static void setServerID(int ServerID) {
         GlobalUtil.ServerID = ServerID;
-        ids = new LongIdUtil(ServerID);
-        mapObjectIdUtil = new LongIdUtil(GlobalUtil.getServerID());
-        mailIdUtil = new LongIdUtil(GlobalUtil.getServerID());
-        goodsIdUtil = new LongIdUtil(GlobalUtil.getServerID());
+        ids = new LongId3Util(ServerID);
+        mapObjectIdUtil = new LongId3Util(GlobalUtil.getServerID());
+        mailIdUtil = new LongId3Util(GlobalUtil.getServerID());
+        goodsIdUtil = new LongId3Util(GlobalUtil.getServerID());
 
     }
 
@@ -306,7 +303,7 @@ public class GlobalUtil {
                 }
             }
             if (pz == PlatZone.NONE) {
-                throw new IllegalArgumentException("服务器配置错误，不属于任何一个渠道");
+                throw new UnsupportedOperationException("服务器配置错误，不属于任何一个渠道");
             }
             return pz;
         }

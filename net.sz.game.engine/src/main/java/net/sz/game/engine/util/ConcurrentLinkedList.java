@@ -2,10 +2,11 @@ package net.sz.game.engine.util;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import org.apache.log4j.Logger;
 
 /**
- * 实现线程安全的
+ * 安全的list，但是不能把保证并发瓶颈
+ * <br>
+ * 高并发可能出现 block
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
@@ -15,7 +16,6 @@ import org.apache.log4j.Logger;
  */
 public class ConcurrentLinkedList<E> extends LinkedList<E> implements Cloneable, java.io.Serializable {
 
-    private static final Logger log = Logger.getLogger(ConcurrentLinkedList.class);
     private static final long serialVersionUID = -8672434390186312157L;
 
     @Override
@@ -184,5 +184,10 @@ public class ConcurrentLinkedList<E> extends LinkedList<E> implements Cloneable,
         synchronized (this) {
             return super.getFirst(); //To change body of generated methods, choose Tools | Templates.
         }
+    }
+
+    @Override
+    public Object clone() {
+        return super.clone(); //To change body of generated methods, choose Tools | Templates.
     }
 }

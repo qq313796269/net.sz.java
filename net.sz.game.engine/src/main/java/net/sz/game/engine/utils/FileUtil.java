@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -14,8 +13,6 @@ import org.apache.log4j.Logger;
  * phone 13882122019<br>
  */
 public class FileUtil {
-
-    private static final Logger log = Logger.getLogger(FileUtil.class);
 
     /**
      * 读取文件里面所有字符串
@@ -31,9 +28,8 @@ public class FileUtil {
             byte[] filecontent = new byte[filelength.intValue()];
             in.read(filecontent);
             return new String(filecontent, charsetName);//返回文件内容,默认编码
-        } catch (Exception ex) {
-            log.error("读取文件内容：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new RuntimeException("读取文件内容", ex);
         }
     }
 
@@ -50,9 +46,8 @@ public class FileUtil {
             byte[] filecontent = new byte[filelength.intValue()];
             in.read(filecontent);
             return filecontent;//返回文件内容,默认编码
-        } catch (Exception ex) {
-            log.error("读取文件内容：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new RuntimeException("读取文件内容", ex);
         }
     }
 
@@ -69,9 +64,8 @@ public class FileUtil {
             byte[] filecontent = new byte[filelength.intValue()];
             in.read(filecontent);
             return ZipUtil.zip(filecontent);//返回文件内容,默认编码
-        } catch (Exception ex) {
-            log.error("读取文件内容：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("读取文件内容", ex);
         }
     }
 
@@ -110,9 +104,8 @@ public class FileUtil {
                 osw.write(obj);
                 osw.flush();
             }
-        } catch (Exception ex) {
-            log.error("把字符串书序到文件错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("把字符串书序到文件错误", ex);
         }
     }
 
@@ -125,9 +118,8 @@ public class FileUtil {
         try (FileOutputStream fos = new FileOutputStream(filePath)) {
             fos.write(obj);
             fos.flush();
-        } catch (Exception ex) {
-            log.error("把字符串书序到文件错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("把字符串书序到文件错误", ex);
         }
     }
 

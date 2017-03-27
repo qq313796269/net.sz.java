@@ -1,7 +1,6 @@
 package net.sz.game.engine.struct;
 
 import java.io.Serializable;
-import org.apache.log4j.Logger;
 
 /**
  * 表示朝向，位移量
@@ -12,7 +11,6 @@ import org.apache.log4j.Logger;
  */
 public class Vector implements Serializable {
 
-    private static final Logger log = Logger.getLogger(Vector.class);
     private static final long serialVersionUID = -8252572890329345857L;
 
     /*表示当前朝向修正值 0 - 11 包含*/
@@ -129,7 +127,10 @@ public class Vector implements Serializable {
 
     @Override
     public String toString() {
-        return "dir=" + dir + ", dir_x=" + dir_x + ", dir_z=" + dir_z + ", atan=" + atan + ", atan360=" + atan360;
+        return "{dir=" + dir + ", dir_x=" + dir_x + ", dir_z=" + dir_z + ", atan=" + atan + ", atan360=" + atan360 + "}";
     }
 
+    public String showString() {
+        return "{dir=" + dir + ", atan=" + atan + ", atan360=" + atan360 + "}";
+    }
 }

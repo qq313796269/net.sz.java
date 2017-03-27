@@ -1,10 +1,11 @@
 package net.sz.game.engine.util;
 
 import java.util.AbstractSet;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -12,25 +13,17 @@ import org.apache.log4j.Logger;
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
+ *
+ * @param <E>
  */
 public class ConcurrentHashSet<E> extends AbstractSet<E> implements Set<E>, java.io.Serializable {
 
-    private static final Logger log = Logger.getLogger(ConcurrentHashSet.class);
     private static final long serialVersionUID = -8672117787651310382L;
 
-    private final ConcurrentHashMap<E, Boolean> map;
+    private ConcurrentHashMap<E, Boolean> map;
 
     public ConcurrentHashSet() {
         map = new ConcurrentHashMap<>();
-    }
-
-    public ConcurrentHashSet(int initialCapacity) {
-        map = new ConcurrentHashMap<>(initialCapacity);
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-        return map.keySet().iterator();
     }
 
     @Override
@@ -49,15 +42,31 @@ public class ConcurrentHashSet<E> extends AbstractSet<E> implements Set<E>, java
     }
 
     @Override
+    public Iterator<E> iterator() {
+        return map.keySet().iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return map.keySet().toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        return map.keySet().toArray(a);
+    }
+
+    @Override
     public boolean add(E e) {
-        return map.putIfAbsent(e, Boolean.TRUE) == null;
+        return map.put(e, Boolean.TRUE) == null;
     }
 
     @Override
     public boolean remove(Object o) {
-        return map.remove(o) != null;
+        return Objects.equals(map.remove(o), Boolean.TRUE);
     }
 
+    @Override
     public void clear() {
         map.clear();
     }

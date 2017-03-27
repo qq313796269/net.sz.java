@@ -1,10 +1,10 @@
 package net.sz.game.engine.util;
 
+import java.io.Serializable;
 import java.util.Objects;
-import org.apache.log4j.Logger;
 
 /**
- * 键值多对，多value
+ * 键值多对，多value,不支持扩容
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
@@ -13,13 +13,12 @@ import org.apache.log4j.Logger;
  * @param <K>
  * @param <V>
  */
-public class NodeEnty2<K, V> {
+public class NodeEnty2<K, V> implements Cloneable, Serializable {
 
-    private static final Logger log = Logger.getLogger(NodeEnty2.class);
+    private static final long serialVersionUID = 3154204303067497676L;
 
     public static void main(String[] args) {
         NodeEnty2<String, Object> nodeEnty2 = new NodeEnty2<>("1", "2", 5);
-        log.error(nodeEnty2.getValue0());
     }
 
     private K key = null;
@@ -34,6 +33,18 @@ public class NodeEnty2<K, V> {
     public NodeEnty2(K k, V... vs) {
         this.key = k;
         this.values = vs;
+    }
+
+    /**
+     *
+     * @param vl value 长度
+     */
+    public NodeEnty2(int vl) {
+        this.values = (V[]) new Object[vl];
+    }
+
+    public void setKey(K key) {
+        this.key = key;
     }
 
     public K getKey() {
@@ -61,13 +72,32 @@ public class NodeEnty2<K, V> {
         return (T) values[index];
     }
 
+    public V setValue0(V v) {
+        return setValue(0, v);
+    }
+
     public V setValue(int index, V v) {
         values[index] = v;
         return values[index];
     }
 
+    /**
+     *
+     * @return
+     */
     public V[] getValues() {
         return values;
+    }
+
+    /**
+     * 请尽量不要调用
+     *
+     * @param values
+     * @deprecated
+     */
+    @Deprecated
+    public void setValues(V[] values) {
+        this.values = values;
     }
 
     @Override
@@ -93,6 +123,16 @@ public class NodeEnty2<K, V> {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String toString() {
+        return "key=" + key;
     }
 
 }

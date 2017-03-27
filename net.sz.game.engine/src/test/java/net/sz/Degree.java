@@ -1,7 +1,8 @@
 package net.sz;
 
 import java.util.Arrays;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class Degree {
 
-    private static final Logger log = Logger.getLogger(Degree.class);
+    private static SzLogger log = SzLogger.getLogger();
     private double x;
     private double y;
 

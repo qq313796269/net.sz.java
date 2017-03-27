@@ -7,11 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -21,8 +19,6 @@ import org.apache.log4j.Logger;
  * phone 13882122019<br>
  */
 public class ZipUtil {
-
-    private static final Logger log = Logger.getLogger(ZipUtil.class);
 
     /**
      * 使用zip进行压缩
@@ -41,8 +37,8 @@ public class ZipUtil {
                 zout.closeEntry();
                 return out.toByteArray();
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -71,9 +67,9 @@ public class ZipUtil {
         }
         try {
             byte[] zip = zip(str.getBytes("utf-8"));
-            return new sun.misc.BASE64Encoder().encodeBuffer(zip);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            return StringUtil.getBase64String(zip);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -88,7 +84,7 @@ public class ZipUtil {
             return null;
         }
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] compressed = new sun.misc.BASE64Decoder().decodeBuffer(compressedStr);
+            byte[] compressed = StringUtil.getFromBase64Byte(compressedStr);
             try (ByteArrayInputStream in = new ByteArrayInputStream(compressed)) {
                 try (ZipInputStream zin = new ZipInputStream(in)) {
                     zin.getNextEntry();
@@ -100,8 +96,8 @@ public class ZipUtil {
                     return out.toString("utf-8");
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -138,8 +134,8 @@ public class ZipUtil {
                     return out.toByteArray();
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -153,8 +149,8 @@ public class ZipUtil {
         try {
             byte[] bytes = ObjectStreamUtil.toBytes(source);
             writeZip(zipPath, fileName, bytes);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -179,8 +175,8 @@ public class ZipUtil {
         try {
             byte[] bytes = source.getBytes(charsetName);
             writeZip(zipPath, fileName, bytes);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -205,8 +201,8 @@ public class ZipUtil {
                     zos.closeEntry();
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -220,13 +216,12 @@ public class ZipUtil {
             try (ZipInputStream zin = new ZipInputStream(fileInputStream)) {
                 ZipEntry entry;
                 while ((entry = zin.getNextEntry()) != null) {
-                    log.error(entry.getName());
                     zin.closeEntry();
                 }
                 zin.close();
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -256,8 +251,8 @@ public class ZipUtil {
                 }
                 zin.close();
             }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
         return null;
     }
@@ -287,8 +282,8 @@ public class ZipUtil {
                 return null;
             }
             return new String(loadZipFile, charsetName);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException(ex);
         }
     }
 
@@ -320,6 +315,13 @@ public class ZipUtil {
             return null;
         }
         return (T) ObjectStreamUtil.toObject(loadZipFile);
+    }
+
+    public static void main(String[] args) {
+        String zipString = zipString("sdfagasgasf阿萨德刚发生的嘎嘎额外嘎斯vfasfsgag");
+        System.out.println(zipString);
+        System.out.println(unZipString(zipString));
+        System.exit(0);
     }
 
 }

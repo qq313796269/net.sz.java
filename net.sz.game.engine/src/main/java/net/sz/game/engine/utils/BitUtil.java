@@ -1,7 +1,5 @@
 package net.sz.game.engine.utils;
 
-import org.apache.log4j.Logger;
-
 /**
  *
  * <br>
@@ -10,8 +8,6 @@ import org.apache.log4j.Logger;
  * phone 13882122019<br>
  */
 public class BitUtil {
-
-    private static final Logger log = Logger.getLogger(BitUtil.class);
 
     // <editor-fold defaultstate="collapsed" desc="是否包含一个状态 public static boolean hasFlagBitLong(long value1, long value2)">
     /**

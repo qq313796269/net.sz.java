@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import org.apache.log4j.Logger;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
@@ -19,7 +18,6 @@ import org.simpleframework.xml.core.Persister;
  */
 public class XmlUtil {
 
-    private static final Logger log = Logger.getLogger(XmlUtil.class);
     /*
      * XStream 不关心序列化/逆序列化的类的字段的可见性。
      * 序列化/逆序列化类的字段不需要 getter 和 setter 方法。
@@ -57,9 +55,8 @@ public class XmlUtil {
                 osw.write(xml);
                 osw.flush();
             }
-        } catch (Exception ex) {
-            log.error("序列化对象为xml错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("序列化对象为xml错误：", ex);
         }
     }
 
@@ -85,9 +82,8 @@ public class XmlUtil {
         try (java.io.ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             simpleXml.write(source, baos);
             return new String(baos.toByteArray(), "utf-8");
-        } catch (Exception ex) {
-            log.error("witerSimpleXml：" + source.getClass().getName(), ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("witerSimpleXml：" + source.getClass().getName(), ex);
         }
     }
 
@@ -141,9 +137,8 @@ public class XmlUtil {
         try {
             Object fromXML = xStream.fromXML(xml);
             return (T) fromXML;
-        } catch (Exception ex) {
-            log.error("反序列化对象为xml错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("反序列化对象为xml错误", ex);
         }
     }
 
@@ -158,9 +153,8 @@ public class XmlUtil {
     public static <T> T readerSimpleXmlToFile(String path, Class<T> t) {
         try {
             return simpleXml.read(t, new File(path));
-        } catch (Exception ex) {
-            log.error("反序列化对象为xml错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("反序列化对象为xml错误", ex);
         }
     }
 
@@ -175,9 +169,8 @@ public class XmlUtil {
     public static <T> T readerSimpleXml(String xml, Class<T> t) {
         try {
             return simpleXml.read(t, xml);
-        } catch (Exception ex) {
-            log.error("反序列化对象为xml错误：", ex);
-            throw new RuntimeException(ex);
+        } catch (Throwable ex) {
+            throw new UnsupportedOperationException("反序列化对象为xml错误", ex);
         }
     }
 

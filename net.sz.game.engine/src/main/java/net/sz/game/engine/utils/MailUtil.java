@@ -2,16 +2,14 @@ package net.sz.game.engine.utils;
 
 import java.util.Date;
 import java.util.Properties;
-import javax.mail.Authenticator;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  * 用于程序向研发人员发送邮件
@@ -22,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class MailUtil {
 
-    private static final Logger log = Logger.getLogger(MailUtil.class);
+    private static SzLogger log = SzLogger.getLogger();
     static final String SMTP_STRING = "smtp.exmail.qq.com";
     static final String username = "dyfservermail@dyfgame.com";
     static final String password = "Dyf1qaz2wsx";

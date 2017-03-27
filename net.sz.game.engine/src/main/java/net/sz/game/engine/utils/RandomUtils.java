@@ -6,7 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -17,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public class RandomUtils {
 
-    private static final Logger log = Logger.getLogger(RandomUtils.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     private static final Random random = new Random();
 

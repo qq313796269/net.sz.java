@@ -1,7 +1,5 @@
 package net.sz.game.engine.utils;
 
-import org.apache.log4j.Logger;
-
 /**
  * 原子级别操作
  * <br>
@@ -10,8 +8,6 @@ import org.apache.log4j.Logger;
  * phone 13882122019<br>
  */
 public class AtomUtil {
-
-    private static final Logger log = Logger.getLogger(AtomUtil.class);
 
     /**
      * 递增

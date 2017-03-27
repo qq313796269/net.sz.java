@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
-public class ObjectAttribute<V> extends ConcurrentHashMap<String, V> implements Serializable {
+public class ObjectAttribute<V> extends ConcurrentHashMap<String, V> implements Serializable, Cloneable {
 
     private static final long serialVersionUID = -5320260807959251398L;
 

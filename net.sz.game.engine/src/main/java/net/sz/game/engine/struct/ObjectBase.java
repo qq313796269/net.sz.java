@@ -9,29 +9,50 @@ import java.io.Serializable;
  * phone 13882122019<br>
  * email 492794628@qq.com<br>
  */
-public class ObjectBase implements Serializable {
+public class ObjectBase implements Cloneable, Serializable {
 
     private static final long serialVersionUID = -8981799590065464386L;
 
-    public transient final Object OBJ_SYAN_OBJECT = new Object();
-
-    /* 其他属性 */
-    protected ObjectAttribute<Serializable> variables = null;
-    /* 不需要保存的序列化对象 */
-    protected transient ObjectAttribute<Object> tmpOthers = null;
-    /* 对应的唯一键ID */
+    /**
+     * 对应的唯一键ID
+     */
     protected long id;
-    protected int serverId;
-    //创建游戏id
-    private int gameId;
-    //创建平台id
-    private int PlatformID;
-    // 服务器名称
-    private String servername;
-    //id
+    /**
+     * id
+     */
     protected String name;
-    //该对象创建的时间
+    /**
+     * 该对象创建的时间
+     */
     protected long createTime;
+    /**
+     * 游戏ID
+     */
+    private int gameId;
+    /**
+     * 平台ID
+     */
+    private int platformId;
+    /**
+     * 渠道ID
+     */
+    protected int channelId;
+    /**
+     * 服务器ID
+     */
+    private int serverId;
+    /**
+     * 服务器名称
+     */
+    private String servername;
+    /**
+     * 其他属性
+     */
+    private ObjectAttribute<Serializable> variables = null;
+    /**
+     * 不需要保存的序列化对象
+     */
+    private transient ObjectAttribute<Object> tmpOthers = null;
 
     public ObjectBase() {
 //        id = GlobalUtil.getUUIDToLong();
@@ -70,12 +91,20 @@ public class ObjectBase implements Serializable {
         this.gameId = gameId;
     }
 
-    public int getPlatformID() {
-        return PlatformID;
+    public int getPlatformId() {
+        return platformId;
     }
 
-    public void setPlatformID(int PlatformID) {
-        this.PlatformID = PlatformID;
+    public void setPlatformId(int platformId) {
+        this.platformId = platformId;
+    }
+
+    public int getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(int channelId) {
+        this.channelId = channelId;
     }
 
     public String getServername() {
@@ -84,10 +113,6 @@ public class ObjectBase implements Serializable {
 
     public void setServername(String servername) {
         this.servername = servername;
-    }
-
-    public long getCreateTime() {
-        return createTime;
     }
 
     /**
@@ -130,6 +155,10 @@ public class ObjectBase implements Serializable {
         this.variables = variables;
     }
 
+    public long getCreateTime() {
+        return createTime;
+    }
+
     @Deprecated
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
@@ -137,6 +166,10 @@ public class ObjectBase implements Serializable {
 
     @Override
     public String toString() {
+        return "id=" + id + ", name=" + name;
+    }
+
+    public String showString() {
         return "id=" + id + ", name=" + name;
     }
 
@@ -162,6 +195,26 @@ public class ObjectBase implements Serializable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        ObjectBase ob = null;
+        ob = (ObjectBase) super.clone();
+
+        if (this.tmpOthers == null) {
+            ob.tmpOthers = null;
+        } else {
+            ob.tmpOthers = (ObjectAttribute<Object>) tmpOthers.clone();
+        }
+
+        if (this.variables == null) {
+            ob.variables = null;
+        } else {
+            ob.variables = (ObjectAttribute<Serializable>) variables.clone();
+        }
+
+        return super.clone(); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

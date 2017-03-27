@@ -8,7 +8,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class TimeUtil {
 
-    private static final Logger log = Logger.getLogger(TimeUtil.class);
+    private static SzLogger log = SzLogger.getLogger();
     private static final SimpleDateFormat DF222 = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
 
     public static void main(String[] args) throws ParseException {
@@ -73,23 +74,6 @@ public class TimeUtil {
     }
 
     /**
-     * 返回开服第几天
-     *
-     * @return
-     */
-//    public static int getOpenDays() {
-//        try {
-//            Date d1 = DF1.parse(DF1.format(Main.getOpenTime()));
-//            Date d2 = DF1.parse(DF1.format(new Date()));
-//            long time = d2.getTime() - d1.getTime();
-//            if (time > 0) {
-//                return (int) (time / (1000 * 60 * 60 * 24)) + 1;
-//            }
-//        } catch (ParseException ex) {
-//        }
-//        return 0;
-//    }
-    /**
      * 返回指定天数以后的时间，凌晨
      *
      * @param currentTimeMillis
@@ -102,7 +86,7 @@ public class TimeUtil {
             calendar.setTime(DF1.parse(DF1.format(new Date(currentTimeMillis))));
             calendar.add(Calendar.DATE, days);
             return calendar.getTime().getTime();
-        } catch (ParseException ex) {
+        } catch (Throwable ex) {
         }
         return 0;
     }
@@ -120,7 +104,7 @@ public class TimeUtil {
     public static Date getDateFormat1(String fmt) {
         try {
             return DF1.parse(fmt);
-        } catch (ParseException e) {
+        } catch (Throwable e) {
         }
         return null;
     }
@@ -222,7 +206,7 @@ public class TimeUtil {
     public static Date getDateFormat2(String fmt) {
         try {
             return DF2.parse(fmt);
-        } catch (ParseException e) {
+        } catch (Throwable e) {
         }
         return null;
     }
@@ -561,7 +545,7 @@ public class TimeUtil {
                                     if (hour == 23 && minute == 59) {//把时间加1分钟
                                         calendar1.add(Calendar.MINUTE, 1);
                                     }
-                                } catch (Exception ex) {
+                                } catch (Throwable ex) {
                                     log.error("", ex);
                                 }
 //                                calendar1.set(tempYears.get(y), (tempMonths.get(m) - 1), tempDays.get(d), hour, minute, second);
@@ -676,7 +660,7 @@ public class TimeUtil {
                             Calendar calendar1 = Calendar.getInstance();
                             try {
                                 calendar1.setTime(new Date((tempYears.get(y) - 1900), (tempMonths.get(m) - 1), tempDays.get(d), hour, minute, second));
-                            } catch (Exception ex) {
+                            } catch (Throwable ex) {
                                 log.error("", ex);
                             }
 //                            calendar1.set(tempYears.get(y), (tempMonths.get(m) - 1), tempDays.get(d), hour, minute, second);

@@ -1,7 +1,6 @@
 package net.sz.game.engine.utils;
 
 import java.security.MessageDigest;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -12,7 +11,6 @@ import org.apache.log4j.Logger;
  */
 public class MD5Util {
 
-    private static final Logger log = Logger.getLogger(MD5Util.class);
     private final static String[] hexDigits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
 
     /**
@@ -62,7 +60,6 @@ public class MD5Util {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             String join = String.join(String.valueOf(joinStr), origins);
-            log.debug(join);
             resultString = byteArrayToHexString(md.digest(join.getBytes("utf-8")));
         } catch (Exception ex) {
         }

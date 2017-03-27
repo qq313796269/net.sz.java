@@ -2,7 +2,7 @@ package net.sz.game.engine.utils;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import org.apache.log4j.Logger;
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
  *
@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
  */
 public class LogUtil {
 
-    static private final Logger log = Logger.getLogger(LogUtil.class);
+    private static SzLogger log = SzLogger.getLogger();
 
     static private final ThreadGroup LogThreadGroup = new ThreadGroup("Log ThreadGroup");
 

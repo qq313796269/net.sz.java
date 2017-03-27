@@ -8,10 +8,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.apache.log4j.Logger;
+
+import net.sz.game.engine.szlog.SzLogger;
 
 /**
- *
+ * utf-8字符集操作
  * <br>
  * author 失足程序员<br>
  * mail 492794628@qq.com<br>
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class StringUtil {
 
-    private static final Logger log = Logger.getLogger(StringUtil.class);
+    private static SzLogger log = SzLogger.getLogger(); 
 
     public static final String EMPTY_STRING = "";
     public static final int ZERO = 0;
@@ -124,6 +125,8 @@ public class StringUtil {
         return regx.matcher(str).replaceAll("").trim();
     }
 
+    private static final Base64.Encoder BASE64_ENCODER = java.util.Base64.getEncoder();
+
     //<editor-fold desc="编码64位 public static String getBase64(String str)">
     /**
      * 编码64位
@@ -131,11 +134,10 @@ public class StringUtil {
      * @param str
      * @return
      */
-    public static String getBase64(String str) {
-        Base64.Encoder encoder = java.util.Base64.getEncoder();
+    public static String getBase64String(String str) {
         String encodeToString = null;
         try {
-            encodeToString = encoder.encodeToString(str.getBytes("utf-8"));
+            encodeToString = BASE64_ENCODER.encodeToString(str.getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
             log.error("编码64位错误", e);
         }
@@ -151,10 +153,9 @@ public class StringUtil {
      * @return
      */
     public static byte[] getBase64Byte(String str) {
-        Base64.Encoder encoder = java.util.Base64.getEncoder();
         byte[] encodeToString = null;
         try {
-            encodeToString = encoder.encode(str.getBytes("utf-8"));
+            encodeToString = BASE64_ENCODER.encode(str.getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
             log.error("编码64位错误", e);
         }
@@ -169,11 +170,29 @@ public class StringUtil {
      * @param str
      * @return
      */
+    public static String getBase64String(byte[] str) {
+        String encodeToString = null;
+        try {
+            encodeToString = BASE64_ENCODER.encodeToString(str);
+        } catch (Exception e) {
+            log.error("编码64位错误", e);
+        }
+        return encodeToString;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="编码64位 public static String getBase64(String str)">
+    /**
+     * 编码64位
+     *
+     * @param str
+     * @return
+     */
     public static byte[] getBase64Byte(byte[] str) {
-        Base64.Encoder encoder = java.util.Base64.getEncoder();
+
         byte[] encodeToString = null;
         try {
-            encodeToString = encoder.encode(str);
+            encodeToString = BASE64_ENCODER.encode(str);
         } catch (Exception e) {
             log.error("编码64位错误", e);
         }
@@ -190,12 +209,51 @@ public class StringUtil {
      */
     public static String getFromBase64(String str) {
         String result = null;
-        Base64.Decoder decoder = java.util.Base64.getDecoder();
         try {
-            byte[] decode = decoder.decode(str);
+            byte[] decode = Base64_DECODER.decode(str);
             result = new String(decode, "utf-8");
         } catch (Exception e) {
             log.error("解码64位错误", e);
+        }
+        return result;
+    }
+    //</editor-fold>
+
+    private static final Base64.Decoder Base64_DECODER = java.util.Base64.getDecoder();
+
+    //<editor-fold desc="解码64位 public static byte[] getFromBase64(String str)">
+    /**
+     * 解码64位
+     *
+     * @param str
+     * @return
+     */
+    public static byte[] getFromBase64Byte(String str) {
+        byte[] result = null;
+        try {
+            result = Base64_DECODER.decode(str);
+        } catch (Exception e) {
+            log.error("解码64位错误", e);
+
+        }
+        return result;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="解码64位 public static byte[] getFromBase64(byte[] str)">
+    /**
+     * 解码64位
+     *
+     * @param str
+     * @return
+     */
+    public static byte[] getFromBase64Byte(byte[] str) {
+        byte[] result = null;
+        try {
+            result = Base64_DECODER.decode(str);
+        } catch (Exception e) {
+            log.error("解码64位错误", e);
+
         }
         return result;
     }
@@ -210,9 +268,8 @@ public class StringUtil {
      */
     public static String getFromBase64(byte[] str) {
         String result = null;
-        Base64.Decoder decoder = java.util.Base64.getDecoder();
         try {
-            byte[] decode = decoder.decode(str);
+            byte[] decode = Base64_DECODER.decode(str);
             result = new String(decode, "utf-8");
         } catch (Exception e) {
             log.error("解码64位错误", e);
