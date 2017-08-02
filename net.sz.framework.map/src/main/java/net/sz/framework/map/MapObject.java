@@ -14,7 +14,7 @@ import net.sz.framework.way.navmesh.Vector3;
  * 一切地图场景对象基对象
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */

@@ -6,7 +6,7 @@ import net.sz.framework.utils.BitUtil;
  * 任意多边形，
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * phone 13882122019<br>
  * email 492794628@qq.com<br>
  */

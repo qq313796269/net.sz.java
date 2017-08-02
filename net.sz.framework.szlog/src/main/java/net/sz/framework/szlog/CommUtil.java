@@ -13,7 +13,7 @@ import java.util.Properties;
  * <br>szlogger.ini 设置 CONSOLE_FILE_BUFFER 日志双缓冲输出到文件 true or false
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */

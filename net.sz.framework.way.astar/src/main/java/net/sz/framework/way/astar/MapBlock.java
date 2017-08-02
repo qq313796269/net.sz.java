@@ -11,7 +11,7 @@ import net.sz.framework.szlog.SzLogger;
  * 我们的阻挡是左上角开始右下角结束，地图和阻挡看上去是上下翻转
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */

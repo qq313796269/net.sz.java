@@ -14,7 +14,7 @@ import net.sz.framework.szthread.timer.PrintlnServerMemoryTimerEvent;
  * 需要设置 GlobalUtil.SERVERSTARTEND = true; 标识服务器启动完成
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */

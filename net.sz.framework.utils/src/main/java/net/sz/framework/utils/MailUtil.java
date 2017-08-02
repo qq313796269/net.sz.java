@@ -15,7 +15,7 @@ import net.sz.framework.szlog.SzLogger;
  * 用于程序向研发人员发送邮件
  * <br>
  * author 失足程序员<br>
- * blog http://www.cnblogs.com/ty408/<br>
+ * blog http://www.cnblogs.com/shizuchengxuyuan/<br>
  * mail 492794628@qq.com<br>
  * phone 13882122019<br>
  */
