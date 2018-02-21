@@ -1,0 +1,132 @@
+package net.sz.chess.message.proto;
+
+// Req   client 2 game server
+// Res   game server 2 client
+
+// GL   game server 2  server
+// LG    server 2 game server
+enum Protos_Register {
+  RegisterHallServer 						     = 101101; // GameServer 2 Server 注册请求
+  RegisterGateServer                 = 101102; // GameServer 2 Server 注册请求
+  ServerHeart 						           = 101122; // 服务器心跳
+  ServerAllInfo                      = 101123; // 大厅服务器下发消息，获取服务器相信信息
+  ServerOver                         = 101124; // 服务器需要结束，不在继续分配游戏或人员
+  GateServerInfo                     = 101125; // 网关服务器信息
+  CloseGateServer                    = 101126; // 关闭网关服务器
+  ServerToServer                     = 101127; // 通过服务器转发消息；
+  UserLogin                          = 101128; // 网关服务器告诉大厅服务器，用户登录了
+}
+
+message GHUserLoginMessage{
+  optional Protos_Register msgID             = 01 [default = UserLogin]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional int32 serverId                    = 02; //转发的服务器id
+  optional string serverSessionId            = 03; //转发的服务器通信id
+  optional string clientSessionId            = 04; //客户端通信id
+  optional int64 uId                         = 05; //登录用户id，如果尚未登录可能空
+  optional string uName                      = 06; //登录的用户名
+}
+
+
+//服务器心跳信息
+message GGServerToServerMessage {
+  optional Protos_Register msgID             = 01 [default = ServerToServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional int32 serverId                    = 02; //转发的服务器id
+  optional string serverSessionId            = 03; //转发的服务器通信id
+  optional string clientSessionId            = 04; //客户端通信id
+  optional int64 uId                         = 05; //登录用户id，如果尚未登录可能空
+  optional int32 mId                         = 06; //消息id
+  optional bytes mData                       = 07; //消息内容
+
+}
+
+//服务器心跳信息
+message GGServerHeartMessage {
+  optional Protos_Register msgID             = 1 [default = ServerHeart]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional int64 time 											 = 2; // 账号id
+  optional int32 playerCount                 = 3; //当前在线人数
+  optional int32 serverType                  = 4; //服务器类型，
+}
+
+message GHRegisterServerMessage {
+  optional Protos_Register msgID         	      = 1 [default = RegisterHallServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerInfo serverInfo                = 2; //游戏ID
+}
+
+
+message HGRegisterServerMessage {
+  optional Protos_Register msgID 		           = 1 [default = RegisterHallServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  repeated ServerConnectInfo serverInfo               = 2; //游戏ID
+}
+
+
+message GRRegisterServerMessage {
+  optional Protos_Register msgID                = 1 [default = RegisterGateServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerConnectInfo serverInfo                = 2; //游戏ID
+}
+
+
+message RGRegisterServerMessage {
+  optional Protos_Register msgID               = 1 [default = RegisterGateServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerConnectInfo serverInfo               = 2; //游戏ID
+}
+
+//服务器心跳信息
+message HGServerAllInfoMessage {
+  optional Protos_Register msgID                = 1 [default = ServerAllInfo]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerConnectInfo serverInfo         = 2; //游戏ID
+}
+
+message ServerInfo{
+  optional string gameId                        = 2; //游戏ID
+  optional string platformId                    = 3; //平台ID
+  optional string channelId                     = 4; //渠道ID
+  optional int32 serverId                       = 5; //服务器ID
+  optional int32 serverCode                     = 6; //服务器编码，版本号
+  optional int32 serverType                     = 7; //服务器类型，1主服务器，2从服务器
+  optional int32 msgType                        = 8; //消息类型，1标识启动服务器，2标识断线重连
+  optional bool serverEnd                       = 9; //服务器是否启动完成
+}
+
+message HGServerOverMessage {
+  optional Protos_Register msgID              = 1 [default = ServerOver]; // 消息ID,虽然是optional,但必须定义default枚举值
+
+}
+
+message GHServerOverMessage {
+  optional Protos_Register msgID              = 1 [default = ServerOver]; // 消息ID,虽然是optional,但必须定义default枚举值
+
+}
+
+
+message HGGateServerInfoMessage {
+  optional Protos_Register msgID              = 1 [default = GateServerInfo]; // 消息ID,虽然是optional,但必须定义default枚举值
+  repeated ServerConnectInfo serverInfo       = 2; //游戏ID
+}
+
+message GHGateServerInfoMessage {
+  optional Protos_Register msgID              = 1 [default = GateServerInfo]; // 消息ID,虽然是optional,但必须定义default枚举值
+  repeated ServerConnectInfo serverInfo       = 2; //游戏ID
+}
+
+//服务器链接信息
+message ServerConnectInfo{
+  optional int32 serverId                 = 1; //
+  optional string tcpIp                   = 2; //
+  optional int32 tcpPort                  = 3; //
+  optional string httpIp                  = 4; //
+  optional int32 httpPort                 = 5; //
+
+}
+
+
+//发送消息到大厅服务器,通知大厅关闭链接
+message GHCloseGateServerMessage {
+  optional Protos_Register msgID              = 1 [default = CloseGateServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerConnectInfo serverInfo       = 2; //游戏ID
+}
+
+//发送消息到房间服务器,通知房间关闭链接
+message GRCloseGateServerMessage {
+  optional Protos_Register msgID              = 1 [default = CloseGateServer]; // 消息ID,虽然是optional,但必须定义default枚举值
+  optional ServerConnectInfo serverInfo       = 2; //游戏ID
+}

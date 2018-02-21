@@ -1,0 +1,44 @@
+package net.sz.chess.message.proto;
+
+// Req   client 2 game server
+// Res   game server 2 client
+
+// GL   game server 2  server
+// LG    server 2 game server
+enum Protos_Register {
+  Chat              						     = 901101; // GameServer 2 Server 注册请求
+  Tips                               = 901102; // 服务器下发到客户端提示
+}
+
+//客户端发起聊天
+message ReqChatMessage{
+  optional Protos_Register msgID             = 1 [default = Chat];
+  optional int64 sendId                      = 2;//发送者id。
+  optional int64 sendName                    = 3;//发送者id。
+  optional int64 toId                        = 4;//接受者id，可以为空
+  optional int64 toName                      = 5;//接受者id，可以为空
+  optional int32 chatType                    = 6;//聊天类型 ，1表示普通聊天，2表示私聊，3表示语音聊天
+  optional int32 index                       = 7;//消息内容，快速聊天或者表情,客户端自定义
+  optional string msg                        = 8;//消息内容，自定义聊天内容，客户端自定义
+}
+
+//服务器回复、广播聊天
+message ResChatMessage{
+  optional Protos_Register msgID             = 1 [default = Chat];
+  optional int64 sendId                      = 2;//发送者id。
+  optional int64 sendName                    = 3;//发送者id。
+  optional int64 toId                        = 4;//接受者id，可以为空
+  optional int64 toName                      = 5;//接受者id，可以为空
+  optional int32 chatType                    = 6;//聊天类型 ，1表示普通聊天，2表示私聊，3表示语音聊天
+  optional int32 index                       = 7;//消息内容，快速聊天或者表情,客户端自定义
+  optional string msg                        = 8;//消息内容，自定义聊天内容，客户端自定义
+}
+
+//服务器推送提示
+message ResTipsMessage{
+  optional Protos_Register msgID             = 1 [default = Tips];
+  optional int32 chatType                    = 2;//聊天类型 ，1错误提示。2 走马灯，3普通提示，
+  optional int64 sendId                      = 3;//可能是关联的发送者id。
+  optional string sendName                   = 4;//可能是关联的发送者id，可以为空
+  optional string msg                        = 5;//推送内容
+}

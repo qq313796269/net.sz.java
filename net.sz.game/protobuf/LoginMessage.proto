@@ -1,0 +1,33 @@
+package net.sz.chess.message.proto;
+
+// Req   client 2 game server
+// Res   game server 2 client
+
+// GL   game server 2  server
+// LG    server 2 game server
+enum Protos_Register {
+  Login 						                    = 201101; // GameServer 2 Server 注册请求
+  UserInfo                              = 201102; //登录成功后用户信息
+}
+
+//客户端向网关服务器发起登录
+message CGLoginMessage{
+  optional Protos_Register msgID             = 1 [default = login];
+  optional int64 uid                         = 2; //登录服务器获取的用户id
+  optional string uname                      = 3; //玩家登录用户名，第三方开放id
+  optional string token                      = 4; //登录服务器获取的token验证码
+  optional int64 tokenTime                   = 5; //登录服务器获取token生产时间，
+}
+
+//网关服务器返回给客户端登录后信息
+message GCLoginMessage{
+  optional Protos_Register msgID             = 1 [default = login];
+  optional int64 code                        = 2; //登陆后的代码，0表示成功
+  optional string msg                        = 3; //非正常模式下的提示信息
+}
+
+//网关服务器返回给客户端登录后信息
+message GCUserInfoMessage{
+  optional Protos_Register msgID             = 1 [default = UserInfo];
+
+}

@@ -1,0 +1,11 @@
+package net.sz.chess.message.proto;
+
+// Req   client 2 game server
+// Res   game server 2 client
+
+// GL   game server 2  server
+// LG    server 2 game server
+enum Protos_Register {
+  RegisterHallServer 						     = 801101; // GameServer 2 Server 注册请求
+}
+
