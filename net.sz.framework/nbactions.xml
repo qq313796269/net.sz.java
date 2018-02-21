@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+    <action>
+        <actionName>build-with-dependencies</actionName>
+        <reactor>also-make</reactor>
+        <packagings>
+            <packaging>*</packaging>
+        </packagings>
+        <goals>
+            <goal>clean</goal>
+            <goal>package</goal>
+            <goal>install</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>rebuild</actionName>
+        <packagings>
+            <packaging>*</packaging>
+        </packagings>
+        <goals>
+            <goal>clean</goal>
+            <goal>package</goal>
+            <goal>install</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-mvn</actionName>
+        <displayName>mvn</displayName>
+        <goals>
+            <goal>clean</goal>
+            <goal>package</goal>
+            <goal>install</goal>
+            <goal>deploy</goal>
+        </goals>
+    </action>
+</actions>
